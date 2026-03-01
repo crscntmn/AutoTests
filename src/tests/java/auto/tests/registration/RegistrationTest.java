@@ -1,4 +1,6 @@
-package org.tests;
+package auto.tests.registration;
+import auto.tests.testdata.TestData;
+import base.BaseTest;
 import org.junit.jupiter.api.*;
 import org.openqa.selenium.By;
 import org.openqa.selenium.WebElement;
@@ -6,13 +8,13 @@ import org.openqa.selenium.support.ui.ExpectedConditions;
 import java.util.List;
 
 
-public class Registration extends BaseTest {
+public class RegistrationTest extends BaseTest {
 
     String email;
 
     @BeforeEach
     void generateEmail(){
-        email = Variables.generateEmail();
+        email = TestData.generateEmail();
     }
 
     @Test
@@ -29,13 +31,13 @@ public class Registration extends BaseTest {
 
         //Ввод имени
         WebElement firstName = wait.until(ExpectedConditions.elementToBeClickable(By.id("FirstName")));
-        firstName.sendKeys(Variables.NAME);
-        Assertions.assertEquals(Variables.NAME, firstName.getAttribute("value"));
+        firstName.sendKeys(TestData.NAME);
+        Assertions.assertEquals(TestData.NAME, firstName.getAttribute("value"));
 
         //Ввод фамилии
         WebElement lastName = wait.until(ExpectedConditions.elementToBeClickable(By.id("LastName")));
-        lastName.sendKeys(Variables.LASTNAME);
-        Assertions.assertEquals(Variables.LASTNAME, lastName.getAttribute("value"));
+        lastName.sendKeys(TestData.LASTNAME);
+        Assertions.assertEquals(TestData.LASTNAME, lastName.getAttribute("value"));
 
         //Ввод почты
         WebElement mail = wait.until(ExpectedConditions.elementToBeClickable(By.id("Email")));
@@ -44,13 +46,13 @@ public class Registration extends BaseTest {
 
         //Ввод пароля
         WebElement password = wait.until(ExpectedConditions.elementToBeClickable(By.id("Password")));
-        password.sendKeys(Variables.PASSWORD);
-        Assertions.assertEquals(Variables.PASSWORD, password.getAttribute("value"));
+        password.sendKeys(TestData.PASSWORD);
+        Assertions.assertEquals(TestData.PASSWORD, password.getAttribute("value"));
 
         //Подтверждение пароля
         WebElement confirmPassword = wait.until(ExpectedConditions.elementToBeClickable(By.id("ConfirmPassword")));
-        confirmPassword.sendKeys(Variables.PASSWORD);
-        Assertions.assertEquals(Variables.PASSWORD, confirmPassword.getAttribute("value"));
+        confirmPassword.sendKeys(TestData.PASSWORD);
+        Assertions.assertEquals(TestData.PASSWORD, confirmPassword.getAttribute("value"));
 
         //Регистрация
         WebElement endRegister = wait.until(ExpectedConditions.elementToBeClickable(By.id("register-button")));

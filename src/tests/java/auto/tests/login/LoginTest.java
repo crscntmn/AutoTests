@@ -1,19 +1,21 @@
-package org.tests;
+package auto.tests.login;
 
+import auto.tests.testdata.TestData;
+import base.BaseTest;
 import org.junit.jupiter.api.*;
 import org.openqa.selenium.By;
 import org.openqa.selenium.WebElement;
 import org.openqa.selenium.support.ui.ExpectedConditions;
 
 
-public class Login extends BaseTest {
+public class LoginTest extends BaseTest {
 
     String email;
-    String password = Variables.PASSWORD;
+    String password = TestData.PASSWORD;
 
     @BeforeEach
     void generateEmail() {
-        email = Variables.generateEmail();
+        email = TestData.generateEmail();
 
         //Регистрация пользователя перед тестом авторизации
         RegistrationUser(email, password);
@@ -25,8 +27,8 @@ public class Login extends BaseTest {
     private void RegistrationUser(String email, String password) {
         driver.findElement(By.cssSelector(".ico-register")).click();
         driver.findElement(By.id("gender-male")).click();
-        driver.findElement(By.id("FirstName")).sendKeys(Variables.NAME);
-        driver.findElement(By.id("LastName")).sendKeys(Variables.LASTNAME);
+        driver.findElement(By.id("FirstName")).sendKeys(TestData.NAME);
+        driver.findElement(By.id("LastName")).sendKeys(TestData.LASTNAME);
         driver.findElement(By.id("Email")).sendKeys(email);
         driver.findElement(By.id("Password")).sendKeys(password);
         driver.findElement(By.id("ConfirmPassword")).sendKeys(password);
@@ -49,8 +51,8 @@ public class Login extends BaseTest {
 
         //Ввод пароля
         WebElement inputPassword = driver.findElement(By.id("Password"));
-        inputPassword.sendKeys(Variables.PASSWORD);
-        Assertions.assertEquals(Variables.PASSWORD, inputPassword.getAttribute("value"));
+        inputPassword.sendKeys(TestData.PASSWORD);
+        Assertions.assertEquals(TestData.PASSWORD, inputPassword.getAttribute("value"));
 
         //Нажатие чекбокса
         WebElement rememberMe = driver.findElement(By.id("RememberMe"));
@@ -90,8 +92,8 @@ public class Login extends BaseTest {
 
         //Ввод пароля
         WebElement inputPassword = driver.findElement(By.id("Password"));
-        inputPassword.sendKeys(Variables.WRONG_PASSWORD);
-        Assertions.assertEquals(Variables.WRONG_PASSWORD, inputPassword.getAttribute("value"));
+        inputPassword.sendKeys(TestData.WRONG_PASSWORD);
+        Assertions.assertEquals(TestData.WRONG_PASSWORD, inputPassword.getAttribute("value"));
 
         //Закончить авторизацию
         WebElement endLogin = wait.until(ExpectedConditions.elementToBeClickable(By.cssSelector(".button-1.login-button")));
