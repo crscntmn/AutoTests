@@ -1,5 +1,6 @@
 package auto.tests.pages;
 
+import org.junit.jupiter.api.Assertions;
 import org.openqa.selenium.By;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
@@ -32,7 +33,7 @@ public class RegistrationPage {
     private By successMessage = By.className("result");
     private By errorMessage = By.className("field-validation-error");
 
-    public void open() {
+    public void openRegistration() {
         wait.until(ExpectedConditions.elementToBeClickable(registerButton)).click();
     }
 

@@ -25,8 +25,8 @@ public class RegistrationTest extends BaseTest {
     @Test
     @DisplayName("1.1 Успешная регистрация")
     void SuccessRegistration() {
-        //1. Открытие страницы
-        registrationPage.open();
+        //1. Клик по кнопке регистрации
+        registrationPage.openRegistration();
         //2. Регистрация пользователя
         registrationPage.registerUser(TestData.NAME, TestData.LASTNAME, EMAIL, TestData.PASSWORD);
         Assertions.assertTrue(registrationPage.isRegistrationSuccessful());
@@ -37,8 +37,8 @@ public class RegistrationTest extends BaseTest {
     @Test
     @DisplayName("1.2 Регистрация с пустыми полями")
     void RegistrationWithEmptyValue() {
-        //1. Открытие страницы
-        registrationPage.open();
+        //1. Клик по кнопке регистрации
+        registrationPage.openRegistration();
         //2. Клик по регистрации
         driver.findElement(By.id("register-button")).click();
         Assertions.assertTrue(registrationPage.getErrorCount() >= 5);
