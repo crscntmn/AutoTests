@@ -12,12 +12,11 @@ import java.util.List;
 
 
 public class RegistrationTest extends BaseTest {
-
     String EMAIL;
     RegistrationPage registrationPage;
 
     @BeforeEach
-    void generateEmail() {
+    void doAfterTest() {
         EMAIL = TestData.generateEmail();
         registrationPage = new RegistrationPage(driver);
     }

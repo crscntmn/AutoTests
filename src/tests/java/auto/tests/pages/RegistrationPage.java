@@ -10,14 +10,10 @@ import org.openqa.selenium.support.ui.WebDriverWait;
 import java.time.Duration;
 import java.util.List;
 
-public class RegistrationPage {
-
-    private WebDriver driver;
-    private WebDriverWait wait;
+public class RegistrationPage extends BasePage{
 
     public RegistrationPage(WebDriver driver) {
-        this.driver = driver;
-        this.wait = new WebDriverWait(driver, Duration.ofSeconds(10));
+        super(driver);
     }
 
     //Локаторы

@@ -1,5 +1,6 @@
 package auto.tests.login;
 
+import auto.tests.pages.LoginPage;
 import auto.tests.pages.RegistrationPage;
 import auto.tests.testdata.TestData;
 import base.BaseTest;
@@ -10,64 +11,38 @@ import org.openqa.selenium.support.ui.ExpectedConditions;
 
 
 public class LoginTest extends BaseTest {
-
-    String EMAIL;
+    LoginPage loginPage;
     RegistrationPage registrationPage;
+    String email;
 
     @BeforeEach
-    void generateEmail() {
-        EMAIL = TestData.generateEmail();
-        //registrationPage = new RegistrationPage(driver);
-
-        //Регистрация пользователя перед тестом авторизации
-//        RegistrationUser(email, password);
-
-        //Разлогин после регистрации
-       //driver.findElement(By.cssSelector(".ico-logout")).click();
+    void setUp() {
+        loginPage = new LoginPage(driver);
+        email = TestData.generateEmail();
+        registrationPage = new RegistrationPage(driver);
     }
 
-//    private void RegistrationUser(String email, String password) {
-//        driver.findElement(By.cssSelector(".ico-register")).click();
-//        driver.findElement(By.id("gender-male")).click();
-//        driver.findElement(By.id("FirstName")).sendKeys(TestData.NAME);
-//        driver.findElement(By.id("LastName")).sendKeys(TestData.LASTNAME);
-//        driver.findElement(By.id("Email")).sendKeys(email);
-//        driver.findElement(By.id("Password")).sendKeys(password);
-//        driver.findElement(By.id("ConfirmPassword")).sendKeys(password);
-//        driver.findElement(By.id("register-button")).click();
-//        wait.until(ExpectedConditions.visibilityOfElementLocated(By.className("result")));
-//        driver.findElement(By.cssSelector(".button-1.register-continue-button")).click();
-//    }
+    private void registerNewUser(){
+        registrationPage.openRegistration();
+        registrationPage.registerUser(TestData.NAME, TestData.LASTNAME, email, TestData.PASSWORD);
+        registrationPage.clickContinue();
+        registrationPage.isRegistrationSuccessful();
+        loginPage.logout();
+    }
 
     @Test
     @DisplayName("1.1 Успешная авторизация")
     void SuccessAuthorization() {
-        //Регистрация пользователя
-        //registrationPage.registerUser(TestData.NAME, TestData.LASTNAME, EMAIL, TestData.PASSWORD);
-        //Нажатие на логин
-        WebElement login = wait.until(ExpectedConditions.elementToBeClickable(By.cssSelector(".ico-login")));
-        login.click();
+        //Регистрация пользователя и выход
+        registerNewUser();
+        //1. Нажатие на логин
+        loginPage.openAuthorization();
 
-        //Ввод почты
-        WebElement mail = driver.findElement(By.id("Email"));
-        mail.sendKeys("buben@mail.ru");
-        Assertions.assertEquals("buben@mail.ru", mail.getAttribute("value"));
+        //2. Процесс авторизации (Ввод email и пароль)
+        loginPage.loginUser(email, TestData.PASSWORD);
 
-        //Ввод пароля
-        WebElement inputPassword = driver.findElement(By.id("Password"));
-        inputPassword.sendKeys(TestData.PASSWORD);
-        Assertions.assertEquals(TestData.PASSWORD, inputPassword.getAttribute("value"));
-
-        //Нажатие чекбокса
-        WebElement rememberMe = driver.findElement(By.id("RememberMe"));
-        rememberMe.click();
-        Assertions.assertTrue(rememberMe.isSelected());
-
-        //Закончить авторизацию
-        WebElement endLogin = driver.findElement(By.cssSelector(".button-1.login-button"));
-        endLogin.click();
-        WebElement result = wait.until(ExpectedConditions.visibilityOfElementLocated(By.cssSelector(".header-links a.account")));
-        Assertions.assertEquals("buben@mail.ru", result.getText());
+        //3. Проверка, что авторизация прошла успешно
+        Assertions.assertEquals(email, loginPage.isAuthorizationSuccessful());
     }
 
     @Test
@@ -93,8 +68,8 @@ public class LoginTest extends BaseTest {
 
         //Ввод почты
         WebElement mail = driver.findElement(By.id("Email"));
-        mail.sendKeys(EMAIL);
-        Assertions.assertEquals(EMAIL, mail.getAttribute("value"));
+        mail.sendKeys(email);
+        Assertions.assertEquals(email, mail.getAttribute("value"));
 
         //Ввод пароля
         WebElement inputPassword = driver.findElement(By.id("Password"));
