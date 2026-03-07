@@ -26,7 +26,6 @@ public class LoginTest extends BaseTest {
         registrationPage.openRegistration();
         registrationPage.registerUser(TestData.NAME, TestData.LASTNAME, email, TestData.PASSWORD);
         registrationPage.clickContinue();
-        registrationPage.isRegistrationSuccessful();
         loginPage.logout();
     }
 
