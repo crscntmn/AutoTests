@@ -3,9 +3,6 @@ package auto.tests.pages;
 import org.openqa.selenium.By;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.support.ui.ExpectedConditions;
-import org.openqa.selenium.support.ui.WebDriverWait;
-
-import java.time.Duration;
 
 public class LoginPage extends BasePage {
 
@@ -22,6 +19,8 @@ public class LoginPage extends BasePage {
     private By forgotPasswordButton = By.cssSelector(".forgot-password");
     private By accountLink = By.cssSelector(".header-links a.account");
     private By logout = By.cssSelector(".ico-logout");
+    private By errorMessageIncorrectData = By.cssSelector(".validation-summary-errors");
+    private By errorMessageInvalidEmail = By.cssSelector(".field-validation-error");
 
     public void openAuthorization() {
         wait.until(ExpectedConditions.elementToBeClickable(loginButton)).click();
@@ -35,11 +34,23 @@ public class LoginPage extends BasePage {
         driver.findElement(endLoginButton).click();
     }
 
-    public void logout(){
-        driver.findElement(logout).click();
+    public void logout() {
+        wait.until(ExpectedConditions.elementToBeClickable(logout)).click();
+    }
+
+    public void clickEndLoginButton() {
+        wait.until(ExpectedConditions.elementToBeClickable(endLoginButton)).click();
     }
 
     public String isAuthorizationSuccessful() {
         return wait.until(ExpectedConditions.visibilityOfElementLocated(accountLink)).getText();
+    }
+
+    public boolean isAuthorizationUnsuccessful() {
+        return wait.until(ExpectedConditions.visibilityOfElementLocated(errorMessageIncorrectData)).isDisplayed();
+    }
+
+    public boolean isInvalidEmailErrorDisplayed() {
+        return wait.until(ExpectedConditions.visibilityOfElementLocated(errorMessageInvalidEmail)).isDisplayed();
     }
 }

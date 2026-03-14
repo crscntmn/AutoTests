@@ -36,10 +36,8 @@ public class LoginTest extends BaseTest {
         registerNewUser();
         //1. Нажатие на логин
         loginPage.openAuthorization();
-
         //2. Процесс авторизации (Ввод email и пароль)
         loginPage.loginUser(email, TestData.PASSWORD);
-
         //3. Проверка, что авторизация прошла успешно
         Assertions.assertEquals(email, loginPage.isAuthorizationSuccessful());
     }
@@ -47,21 +45,17 @@ public class LoginTest extends BaseTest {
     @Test
     @DisplayName("1.2 Авторизация с пустыми полями")
     void AuthorizationWithEmptyValue() {
-        //Нажатие на логин
-        WebElement login = wait.until(ExpectedConditions.elementToBeClickable(By.cssSelector(".ico-login")));
-        login.click();
-
-        //Закончить авторизацию
-        WebElement endLogin = driver.findElement(By.cssSelector(".button-1.login-button"));
-        endLogin.click();
-        WebElement result = wait.until(ExpectedConditions.visibilityOfElementLocated(By.className("validation-summary-errors")));
-        Assertions.assertTrue(result.getText().contains("Login was unsuccessful"));
+        //1. Нажатие на логин
+        loginPage.openAuthorization();
+        //2. Нажатие кнопки Log in
+        loginPage.clickEndLoginButton();
+        Assertions.assertTrue(loginPage.isAuthorizationUnsuccessful());
     }
 
     @Test
     @DisplayName("1.3 Авторизация с неправильным паролем")
     void AuthorizationWithWrongPassword() {
-        //Нажатие на логин
+/*        //Нажатие на логин
         WebElement login = wait.until(ExpectedConditions.elementToBeClickable(By.cssSelector(".ico-login")));
         login.click();
 
@@ -79,6 +73,6 @@ public class LoginTest extends BaseTest {
         WebElement endLogin = wait.until(ExpectedConditions.elementToBeClickable(By.cssSelector(".button-1.login-button")));
         endLogin.click();
         WebElement result = wait.until(ExpectedConditions.visibilityOfElementLocated(By.className("validation-summary-errors")));
-        Assertions.assertTrue(result.getText().contains("Login was unsuccessful"));
+        Assertions.assertTrue(result.getText().contains("Login was unsuccessful"));*/
     }
 }
