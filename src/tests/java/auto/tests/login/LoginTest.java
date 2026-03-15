@@ -22,7 +22,7 @@ public class LoginTest extends BaseTest {
         registrationPage = new RegistrationPage(driver);
     }
 
-    private void registerNewUser(){
+    private void registerNewUser() {
         registrationPage.openRegistration();
         registrationPage.registerUser(TestData.NAME, TestData.LASTNAME, email, TestData.PASSWORD);
         registrationPage.clickContinue();
