@@ -13,6 +13,11 @@ public class CartTest extends BaseTest {
     CartPage cartPage;
     RegistrationPage registrationPage;
     LoginPage loginPage;
+    private final String Laptop = "14.1-inch Laptop";
+    private final String GiftCard = "$25 Virtual Gift Card";
+    private final String CheapComputer = "Build your own cheap computer";
+    private final String OwnComputer = "Build your own computer";
+    private final String SimpleComputer = "Simple Computer";
 
     @BeforeEach
     void Setup() {
@@ -22,8 +27,8 @@ public class CartTest extends BaseTest {
     @Test
     @DisplayName("1.1 Оформление заказа аномимом без условий соглашения")
     void unknownWithoutCheckbox() {
-        //1. Добавление товара в корзину
-        cartPage.addProductToCart("14.1-inch Laptop");
+        //1. Добавление ноутбука в корзину
+        cartPage.addProductToCart(Laptop);
         //Ожидаемое поведение: товар успешно добавлен в корзину
         Assertions.assertTrue(cartPage.addProductToCartSuccessful());
         //2. Переход в корзину
@@ -38,7 +43,7 @@ public class CartTest extends BaseTest {
     @DisplayName("1.2 Оформление заказа анонимом с условиями соглашения")
     void unknownWithCheckbox() {
         //1. Добавление товара в корзину
-        cartPage.addProductToCart("14.1-inch Laptop");
+        cartPage.addProductToCart(Laptop);
         //Ожидаемое поведение: товар успешно добавлен в корзину
         Assertions.assertTrue(cartPage.addProductToCartSuccessful());
         //2. Переход в корзину
@@ -48,6 +53,17 @@ public class CartTest extends BaseTest {
         //4. Нажатие на кнопку "Checkout"
         cartPage.clickCheckout();
         Assertions.assertTrue(cartPage.needAuthorization());
+    }
 
+    @Test
+    @DisplayName("1.3 Добавление дешевого компьютера в корзину анонимом")
+    void cheapComputerToCard() {
+        //1. Добавление дешевого компьютера в корзину
+        cartPage.addProductToCart(CheapComputer);
+        //Ожидаемое поведение: Открытие деталки товара с выбором комплектующих
+        Assertions.assertTrue(cartPage.openProductDetail());
+        //2. Ввод количества товара и нажатие кнопки "Add to cart"
+        cartPage.confirmAddCheapComputerToCart();
+        Assertions.assertTrue(cartPage.addProductToCartSuccessful());
     }
 }
