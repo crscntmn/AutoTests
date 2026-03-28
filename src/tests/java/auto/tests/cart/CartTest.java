@@ -61,9 +61,9 @@ public class CartTest extends BaseTest {
         //1. Добавление дешевого компьютера в корзину
         cartPage.addProductToCart(CheapComputer);
         //Ожидаемое поведение: Открытие деталки товара с выбором комплектующих
-        Assertions.assertTrue(cartPage.openProductDetail());
+        Assertions.assertTrue(cartPage.isProductDetailOpened());
         //2. Ввод количества товара и нажатие кнопки "Add to cart"
-        cartPage.confirmAddCheapComputerToCart();
+        cartPage.addProductFromDetail(5);
         Assertions.assertTrue(cartPage.addProductToCartSuccessful());
     }
 }

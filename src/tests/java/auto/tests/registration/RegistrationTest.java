@@ -5,19 +5,17 @@ import auto.tests.testdata.TestData;
 import base.BaseTest;
 import org.junit.jupiter.api.*;
 import org.openqa.selenium.By;
-import org.openqa.selenium.WebElement;
-import org.openqa.selenium.support.ui.ExpectedConditions;
-
-import java.util.List;
 
 
 public class RegistrationTest extends BaseTest {
     String EMAIL;
+    String WRONG_EMAIL;
     RegistrationPage registrationPage;
 
     @BeforeEach
-    void doAfterTest() {
+    void setUp() {
         EMAIL = TestData.generateEmail();
+        WRONG_EMAIL = TestData.generateWrongEmail();
         registrationPage = new RegistrationPage(driver);
     }
 
@@ -27,7 +25,8 @@ public class RegistrationTest extends BaseTest {
         //1. Клик по кнопке регистрации
         registrationPage.openRegistration();
         //2. Регистрация пользователя
-        registrationPage.registerUser(TestData.NAME, TestData.LASTNAME, EMAIL, TestData.PASSWORD);
+        registrationPage.RegisterUser(TestData.NAME, TestData.LASTNAME, EMAIL, TestData.PASSWORD, TestData.PASSWORD);
+        //Ожидаемое поведение: успешная регистрация
         Assertions.assertTrue(registrationPage.isRegistrationSuccessful());
         //3. Клик на "Продолжить"
         registrationPage.clickContinue();
@@ -39,9 +38,31 @@ public class RegistrationTest extends BaseTest {
         //1. Клик по кнопке регистрации
         registrationPage.openRegistration();
         //2. Клик по регистрации
-        driver.findElement(By.id("register-button")).click();
+        registrationPage.endRegistration();
+        //Ожидаемое поведение: ошибка регистрации
         Assertions.assertTrue(registrationPage.getErrorCount() >= 5);
+    }
 
+    @Test
+    @DisplayName("1.3 Регистрация с несовпадающими паролями")
+    void RegistrationWithDismatchPasswords() {
+        //1. Клик по кнопке регистрации
+        registrationPage.openRegistration();
+        //2. Регистрация пользователя
+        registrationPage.RegisterUser(TestData.NAME, TestData.LASTNAME, EMAIL, TestData.PASSWORD, TestData.WRONG_PASSWORD);
+        //Ожидаемое поведение: ошибка регистрации
+        Assertions.assertTrue(registrationPage.isPasswordDoNotMatch());
+    }
+
+    @Test
+    @DisplayName("1.4 Регистрация с некорректным email")
+    void RegistrationWithIncorrectEmail() {
+        //1. Клик по кнопке регистрации
+        registrationPage.openRegistration();
+        //2. Регистрация пользователя
+        registrationPage.RegisterUser(TestData.NAME, TestData.LASTNAME, WRONG_EMAIL, TestData.PASSWORD, TestData.PASSWORD);
+        //Ожидаемое поведение: ошибка регистрации
+        Assertions.assertTrue(registrationPage.isWrongEmail());
     }
 }
 
