@@ -5,9 +5,6 @@ import auto.tests.pages.RegistrationPage;
 import auto.tests.testdata.TestData;
 import base.BaseTest;
 import org.junit.jupiter.api.*;
-import org.openqa.selenium.By;
-import org.openqa.selenium.WebElement;
-import org.openqa.selenium.support.ui.ExpectedConditions;
 
 
 public class LoginTest extends BaseTest {
@@ -24,7 +21,7 @@ public class LoginTest extends BaseTest {
 
     private void registerNewUser() {
         registrationPage.openRegistration();
-        registrationPage.registerUser(TestData.NAME, TestData.LASTNAME, email, TestData.PASSWORD);
+        registrationPage.registerUser(TestData.NAME, TestData.LASTNAME, email, TestData.PASSWORD, TestData.PASSWORD);
         registrationPage.clickContinue();
         loginPage.logout();
     }

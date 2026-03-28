@@ -2,6 +2,7 @@ package auto.tests.pages;
 
 import org.openqa.selenium.By;
 import org.openqa.selenium.WebDriver;
+import org.openqa.selenium.WebElement;
 import org.openqa.selenium.support.ui.ExpectedConditions;
 
 public class CartPage extends BasePage {
@@ -12,15 +13,17 @@ public class CartPage extends BasePage {
 
     //Локаторы
     private By checkoutButton = By.cssSelector(".button-1.checkout-button");
-    private By CartButton = By.cssSelector(".cart-qty");
-    private By succesfulAddToCart = By.cssSelector(".content");
-    private By termsOfServiceError = By.cssSelector(".ui-button-icon-primary.ui-icon.ui-icon-closethick");
+    private By cartButton = By.cssSelector(".cart-qty");
+    private By succesfulAddToCart = By.cssSelector(".bar-notification.success");
+    private By termsOfServiceError = By.xpath("//p[contains(text(),'Please accept the terms of service')]");
     private By termsOfServiceCheckbox = By.id("termsofservice");
-    private By needAuthorization = By.cssSelector(".page-title");
+    private By loginTitle = By.xpath("//h1[text()='Welcome, Please Sign In!']");
+    private By qty = By.cssSelector("input.qty-input");
+    private By addToCartButtonFromDetail = By.cssSelector("input[id^='add-to-cart-button']");
 
 
     public void openCart() {
-        wait.until(ExpectedConditions.elementToBeClickable(CartButton)).click();
+        wait.until(ExpectedConditions.elementToBeClickable(cartButton)).click();
     }
 
     public void clickCheckout() {
@@ -32,7 +35,7 @@ public class CartPage extends BasePage {
         wait.until(ExpectedConditions.elementToBeClickable(addToCart)).click();
     }
 
-    public boolean addProductToCartSuccessful(){
+    public boolean addProductToCartSuccessful() {
         return wait.until(ExpectedConditions.visibilityOfElementLocated(succesfulAddToCart)).isDisplayed();
     }
 
@@ -45,6 +48,17 @@ public class CartPage extends BasePage {
     }
 
     public boolean needAuthorization() {
-        return wait.until(ExpectedConditions.visibilityOfElementLocated(needAuthorization)).isDisplayed();
+        return wait.until(ExpectedConditions.visibilityOfElementLocated(loginTitle)).isDisplayed();
+    }
+
+    public boolean isProductDetailOpened() {
+        return wait.until(ExpectedConditions.visibilityOfElementLocated(qty)).isDisplayed();
+    }
+
+    public void addProductFromDetail(int quantity) {
+        WebElement inputQty = wait.until(ExpectedConditions.visibilityOfElementLocated(qty));
+        inputQty.clear();
+        inputQty.sendKeys(String.valueOf(quantity));
+        wait.until(ExpectedConditions.elementToBeClickable(addToCartButtonFromDetail)).click();
     }
 }

@@ -1,13 +1,10 @@
 package auto.tests.pages;
 
-import org.junit.jupiter.api.Assertions;
 import org.openqa.selenium.By;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
 import org.openqa.selenium.support.ui.ExpectedConditions;
-import org.openqa.selenium.support.ui.WebDriverWait;
 
-import java.time.Duration;
 import java.util.List;
 
 public class RegistrationPage extends BasePage{
@@ -17,29 +14,33 @@ public class RegistrationPage extends BasePage{
     }
 
     //Локаторы
-    private By registerButton = By.cssSelector(".ico-register");
-    private By gender = By.id("gender-male");
-    private By firstNameField = By.id("FirstName");
-    private By lastNameField = By.id("LastName");
-    private By emailField = By.id("Email");
-    private By passwordField = By.id("Password");
-    private By confirmPasswordField = By.id("ConfirmPassword");
-    private By endRegisterButton = By.id("register-button");
-    private By continueButton = By.xpath("//input[@class='button-1 register-continue-button']");
-    private By successMessage = By.className("result");
-    private By errorMessage = By.className("field-validation-error");
+    private final By registerButton = By.cssSelector(".ico-register");
+    private final By gender = By.id("gender-male");
+    private final By firstNameField = By.id("FirstName");
+    private final By lastNameField = By.id("LastName");
+    private final By emailField = By.id("Email");
+    private final By passwordField = By.id("Password");
+    private final By confirmPasswordField = By.id("ConfirmPassword");
+    private final By endRegisterButton = By.id("register-button");
+    private final By continueButton = By.xpath("//input[@class='button-1 register-continue-button']");
+    private final By successMessage = By.className("result");
+    private final By errorMessage = By.className("field-validation-error");
 
     public void openRegistration() {
         wait.until(ExpectedConditions.elementToBeClickable(registerButton)).click();
     }
 
-    public void registerUser(String firstName, String lastName, String email, String password) {
+    public void endRegistration() {
+        wait.until(ExpectedConditions.elementToBeClickable(endRegisterButton)).click();
+    }
+
+    public void registerUser(String firstName, String lastName, String email, String password, String confirmPassword) {
         wait.until(ExpectedConditions.elementToBeClickable(gender)).click();
         driver.findElement(firstNameField).sendKeys(firstName);
         driver.findElement(lastNameField).sendKeys(lastName);
         driver.findElement(emailField).sendKeys(email);
         driver.findElement(passwordField).sendKeys(password);
-        driver.findElement(confirmPasswordField).sendKeys(password);
+        driver.findElement(confirmPasswordField).sendKeys(confirmPassword);
         wait.until(ExpectedConditions.elementToBeClickable(endRegisterButton)).click();
     }
 
@@ -55,5 +56,15 @@ public class RegistrationPage extends BasePage{
     public int getErrorCount() {
         List<WebElement> errors = wait.until(ExpectedConditions.visibilityOfAllElementsLocatedBy(errorMessage));
         return errors.size();
+    }
+
+    public boolean isPasswordDoNotMatch() {
+        String text = wait.until(ExpectedConditions.visibilityOfElementLocated(errorMessage)).getText();
+        return text.contains("The password and confirmation password do not match.");
+    }
+
+    public boolean isWrongEmail() {
+        String text = wait.until(ExpectedConditions.visibilityOfElementLocated(errorMessage)).getText();
+        return text.contains("Wrong email");
     }
 }

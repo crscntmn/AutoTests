@@ -11,4 +11,8 @@ public class TestData {
     public static String generateEmail() {
         return "buben" + UUID.randomUUID() + "@mail.ru";
     }
+
+    public static String generateWrongEmail() {
+        return "buben" + UUID.randomUUID();
+    }
 }
