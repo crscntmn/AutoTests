@@ -21,7 +21,7 @@ public class LoginTest extends BaseTest {
 
     private void registerNewUser() {
         registrationPage.openRegistration();
-        registrationPage.RegisterUser(TestData.NAME, TestData.LASTNAME, email, TestData.PASSWORD, TestData.PASSWORD);
+        registrationPage.registerUser(TestData.NAME, TestData.LASTNAME, email, TestData.PASSWORD, TestData.PASSWORD);
         registrationPage.clickContinue();
         loginPage.logout();
     }

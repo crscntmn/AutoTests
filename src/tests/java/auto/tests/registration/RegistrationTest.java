@@ -4,7 +4,6 @@ import auto.tests.pages.RegistrationPage;
 import auto.tests.testdata.TestData;
 import base.BaseTest;
 import org.junit.jupiter.api.*;
-import org.openqa.selenium.By;
 
 
 public class RegistrationTest extends BaseTest {
@@ -25,7 +24,7 @@ public class RegistrationTest extends BaseTest {
         //1. Клик по кнопке регистрации
         registrationPage.openRegistration();
         //2. Регистрация пользователя
-        registrationPage.RegisterUser(TestData.NAME, TestData.LASTNAME, EMAIL, TestData.PASSWORD, TestData.PASSWORD);
+        registrationPage.registerUser(TestData.NAME, TestData.LASTNAME, EMAIL, TestData.PASSWORD, TestData.PASSWORD);
         //Ожидаемое поведение: успешная регистрация
         Assertions.assertTrue(registrationPage.isRegistrationSuccessful());
         //3. Клик на "Продолжить"
@@ -45,11 +44,11 @@ public class RegistrationTest extends BaseTest {
 
     @Test
     @DisplayName("1.3 Регистрация с несовпадающими паролями")
-    void RegistrationWithDismatchPasswords() {
+    void RegistrationWithMismatchPasswords() {
         //1. Клик по кнопке регистрации
         registrationPage.openRegistration();
         //2. Регистрация пользователя
-        registrationPage.RegisterUser(TestData.NAME, TestData.LASTNAME, EMAIL, TestData.PASSWORD, TestData.WRONG_PASSWORD);
+        registrationPage.registerUser(TestData.NAME, TestData.LASTNAME, EMAIL, TestData.PASSWORD, TestData.WRONG_PASSWORD);
         //Ожидаемое поведение: ошибка регистрации
         Assertions.assertTrue(registrationPage.isPasswordDoNotMatch());
     }
@@ -60,7 +59,7 @@ public class RegistrationTest extends BaseTest {
         //1. Клик по кнопке регистрации
         registrationPage.openRegistration();
         //2. Регистрация пользователя
-        registrationPage.RegisterUser(TestData.NAME, TestData.LASTNAME, WRONG_EMAIL, TestData.PASSWORD, TestData.PASSWORD);
+        registrationPage.registerUser(TestData.NAME, TestData.LASTNAME, WRONG_EMAIL, TestData.PASSWORD, TestData.PASSWORD);
         //Ожидаемое поведение: ошибка регистрации
         Assertions.assertTrue(registrationPage.isWrongEmail());
     }
