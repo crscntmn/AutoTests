@@ -7,7 +7,7 @@ import org.openqa.selenium.support.ui.ExpectedConditions;
 
 import java.util.List;
 
-public class RegistrationPage extends BasePage{
+public class RegistrationPage extends BasePage {
 
     public RegistrationPage(WebDriver driver) {
         super(driver);
@@ -25,6 +25,7 @@ public class RegistrationPage extends BasePage{
     private final By continueButton = By.xpath("//input[@class='button-1 register-continue-button']");
     private final By successMessage = By.className("result");
     private final By errorMessage = By.className("field-validation-error");
+    private final By errorEmailMessage = By.cssSelector(".validation-summary-errors");
 
     public void openRegistration() {
         wait.until(ExpectedConditions.elementToBeClickable(registerButton)).click();
@@ -66,5 +67,19 @@ public class RegistrationPage extends BasePage{
     public boolean isWrongEmail() {
         String text = wait.until(ExpectedConditions.visibilityOfElementLocated(errorMessage)).getText();
         return text.contains("Wrong email");
+    }
+
+    public boolean isShortPassword() {
+        String text = wait.until(ExpectedConditions.visibilityOfElementLocated(errorMessage)).getText();
+        return text.contains("The password should have at least 6 characters.");
+    }
+
+    public boolean isRequiredPassword() {
+        String text = wait.until(ExpectedConditions.visibilityOfElementLocated(errorMessage)).getText();
+        return text.contains("Password is required.");
+    }
+    public boolean isEmailAlreadyExists() {
+        String text = wait.until(ExpectedConditions.visibilityOfElementLocated(errorEmailMessage)).getText();
+        return text.contains("The specified email already exists");
     }
 }

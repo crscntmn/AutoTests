@@ -43,7 +43,7 @@ public class RegistrationTest extends BaseTest {
     }
 
     @Test
-    @DisplayName("1.3 Регистрация с несовпадающими паролями")
+    @DisplayName("1.3 Регистрация с несовпадающим паролем")
     void RegistrationWithMismatchPasswords() {
         //1. Клик по кнопке регистрации
         registrationPage.openRegistration();
@@ -62,6 +62,39 @@ public class RegistrationTest extends BaseTest {
         registrationPage.registerUser(TestData.NAME, TestData.LASTNAME, WRONG_EMAIL, TestData.PASSWORD, TestData.PASSWORD);
         //Ожидаемое поведение: ошибка регистрации
         Assertions.assertTrue(registrationPage.isWrongEmail());
+    }
+
+    @Test
+    @DisplayName("1.5 Регистрация с паролем <6 символов")
+    void RegistrationWithShortPassword() {
+        //1. Клик по кнопке регистрации
+        registrationPage.openRegistration();
+        //2. Регистрация пользователя
+        registrationPage.registerUser(TestData.NAME, TestData.LASTNAME, EMAIL, TestData.SHORT_PASSWORD, TestData.SHORT_PASSWORD);
+        //Ожидаемое поведение: ошибка регистрации
+        Assertions.assertTrue(registrationPage.isShortPassword());
+    }
+
+    @Test
+    @DisplayName("1.6 Регистрация с пробелами в пароле")
+    void RegistrationWithSpaceInPassword() {
+        //1. Клик по кнопке регистрации
+        registrationPage.openRegistration();
+        //2. Регистрация пользователя
+        registrationPage.registerUser(TestData.NAME, TestData.LASTNAME, EMAIL, TestData.SPACE_PASSWORD, TestData.SPACE_PASSWORD);
+        Assertions.assertTrue(registrationPage.isRequiredPassword());
+    }
+
+    @Test
+    @DisplayName("1.7 Регистрация с существующим email")
+    void RegistrationWithBusyEmail() {
+        //1. Регистрация пользователя и разлогин
+        String email = registerNewUser();
+        //2. Открытие регистрации
+        registrationPage.openRegistration();
+        //2. Повторная регистрация под тем же email
+        registrationPage.registerUser(TestData.NAME, TestData.LASTNAME, email, TestData.PASSWORD, TestData.PASSWORD);
+        Assertions.assertTrue(registrationPage.isEmailAlreadyExists());
     }
 }
 
