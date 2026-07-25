@@ -52,6 +52,7 @@ public class CartTest extends BaseTest {
         cartPage.clickCheckbox();
         //4. Нажатие на кнопку "Checkout"
         cartPage.clickCheckout();
+        //Ожидаемое поведение: необходима авторизация
         Assertions.assertTrue(cartPage.needAuthorization());
     }
 
@@ -63,7 +64,8 @@ public class CartTest extends BaseTest {
         //Ожидаемое поведение: Открытие деталки товара с выбором комплектующих
         Assertions.assertTrue(cartPage.isProductDetailOpened());
         //2. Ввод количества товара и нажатие кнопки "Add to cart"
-        cartPage.addProductFromDetail(5);
+        cartPage.addProductFromDetail(10);
+        //Ожидаемое поведение: Товар успешно добавлен в корзину
         Assertions.assertTrue(cartPage.addProductToCartSuccessful());
     }
 }

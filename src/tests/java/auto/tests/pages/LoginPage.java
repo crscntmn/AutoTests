@@ -36,21 +36,26 @@ public class LoginPage extends BasePage {
 
     public void logout() {
         wait.until(ExpectedConditions.elementToBeClickable(logout)).click();
+        //Нажатие кнопки logout
     }
 
     public void clickEndLoginButton() {
         wait.until(ExpectedConditions.elementToBeClickable(endLoginButton)).click();
+        //Нажатие кнопки Log in
     }
 
     public String isAuthorizationSuccessful() {
         return wait.until(ExpectedConditions.visibilityOfElementLocated(accountLink)).getText();
+        //Успешная авторизация
     }
 
     public boolean isAuthorizationUnsuccessful() {
         return wait.until(ExpectedConditions.visibilityOfElementLocated(errorMessageIncorrectData)).isDisplayed();
+        //Не успешная авторизация
     }
 
     public boolean isInvalidEmailErrorDisplayed() {
         return wait.until(ExpectedConditions.visibilityOfElementLocated(errorMessageInvalidEmail)).isDisplayed();
+        //Отображение ошибки неверного email
     }
 }

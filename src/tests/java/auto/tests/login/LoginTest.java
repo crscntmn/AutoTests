@@ -35,7 +35,7 @@ public class LoginTest extends BaseTest {
         loginPage.openAuthorization();
         //2. Процесс авторизации (Ввод email и пароль)
         loginPage.loginUser(email, TestData.PASSWORD);
-        //3. Проверка, что авторизация прошла успешно
+        //Ожидаемое поведение: успешная авторизация
         Assertions.assertEquals(email, loginPage.isAuthorizationSuccessful());
     }
 
@@ -52,24 +52,11 @@ public class LoginTest extends BaseTest {
     @Test
     @DisplayName("1.3 Авторизация с неправильным паролем")
     void AuthorizationWithWrongPassword() {
-/*        //Нажатие на логин
-        WebElement login = wait.until(ExpectedConditions.elementToBeClickable(By.cssSelector(".ico-login")));
-        login.click();
-
-        //Ввод почты
-        WebElement mail = driver.findElement(By.id("Email"));
-        mail.sendKeys(email);
-        Assertions.assertEquals(email, mail.getAttribute("value"));
-
-        //Ввод пароля
-        WebElement inputPassword = driver.findElement(By.id("Password"));
-        inputPassword.sendKeys(TestData.WRONG_PASSWORD);
-        Assertions.assertEquals(TestData.WRONG_PASSWORD, inputPassword.getAttribute("value"));
-
-        //Закончить авторизацию
-        WebElement endLogin = wait.until(ExpectedConditions.elementToBeClickable(By.cssSelector(".button-1.login-button")));
-        endLogin.click();
-        WebElement result = wait.until(ExpectedConditions.visibilityOfElementLocated(By.className("validation-summary-errors")));
-        Assertions.assertTrue(result.getText().contains("Login was unsuccessful"));*/
+        //1. Нажатие на логин
+        loginPage.openAuthorization();
+        //2. Процесс авторизации (Ввод email и пароль)
+        loginPage.loginUser(email, TestData.WRONG_PASSWORD);
+        //Ожидаемое поведение: ошибка авторизации
+        Assertions.assertTrue(loginPage.isAuthorizationUnsuccessful());
     }
 }

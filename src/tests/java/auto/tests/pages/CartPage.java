@@ -12,14 +12,14 @@ public class CartPage extends BasePage {
     }
 
     //Локаторы
-    private By checkoutButton = By.cssSelector(".button-1.checkout-button");
-    private By cartButton = By.cssSelector(".cart-qty");
-    private By succesfulAddToCart = By.cssSelector(".bar-notification.success");
-    private By termsOfServiceError = By.xpath("//p[contains(text(),'Please accept the terms of service')]");
-    private By termsOfServiceCheckbox = By.id("termsofservice");
-    private By loginTitle = By.xpath("//h1[text()='Welcome, Please Sign In!']");
-    private By qty = By.cssSelector("input.qty-input");
-    private By addToCartButtonFromDetail = By.cssSelector("input[id^='add-to-cart-button']");
+    private final By checkoutButton = By.cssSelector(".button-1.checkout-button");
+    private final By cartButton = By.cssSelector(".cart-qty");
+    private final By successfulAddToCart = By.cssSelector(".bar-notification.success");
+    private final By termsOfServiceError = By.xpath("//p[contains(text(),'Please accept the terms of service')]");
+    private final By termsOfServiceCheckbox = By.id("termsofservice");
+    private final By loginTitle = By.xpath("//h1[text()='Welcome, Please Sign In!']");
+    private final By qty = By.cssSelector(".qty-input");
+    private final By addToCartButtonFromDetail = By.cssSelector("input[id^='add-to-cart-button']");
 
 
     public void openCart() {
@@ -36,7 +36,7 @@ public class CartPage extends BasePage {
     }
 
     public boolean addProductToCartSuccessful() {
-        return wait.until(ExpectedConditions.visibilityOfElementLocated(succesfulAddToCart)).isDisplayed();
+        return wait.until(ExpectedConditions.visibilityOfElementLocated(successfulAddToCart)).isDisplayed();
     }
 
     public boolean showTermsOfService() {
