@@ -7,7 +7,7 @@ import org.openqa.selenium.support.ui.ExpectedConditions;
 
 import java.util.List;
 
-public class RegistrationPage extends BasePage{
+public class RegistrationPage extends BasePage {
 
     public RegistrationPage(WebDriver driver) {
         super(driver);
@@ -66,5 +66,25 @@ public class RegistrationPage extends BasePage{
     public boolean isWrongEmail() {
         String text = wait.until(ExpectedConditions.visibilityOfElementLocated(errorMessage)).getText();
         return text.contains("Wrong email");
+    }
+
+    public boolean isEmptyName() {
+        String text = wait.until(ExpectedConditions.visibilityOfElementLocated(errorMessage)).getText();
+        return text.contains("First name is required.");
+    }
+
+    public boolean isEmptyLastName() {
+        String text = wait.until(ExpectedConditions.visibilityOfElementLocated(errorMessage)).getText();
+        return text.contains("Last name is required.");
+    }
+
+    public boolean isEmptyEmail() {
+        String text = wait.until(ExpectedConditions.visibilityOfElementLocated(errorMessage)).getText();
+        return text.contains("Email is required.");
+    }
+
+    public boolean isPasswordInvalidate() {
+        String text = wait.until(ExpectedConditions.visibilityOfElementLocated(errorMessage)).getText();
+        return text.contains("The password should have at least 6 characters.");
     }
 }
