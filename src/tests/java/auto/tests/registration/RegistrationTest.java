@@ -9,12 +9,14 @@ import org.junit.jupiter.api.*;
 public class RegistrationTest extends BaseTest {
     String EMAIL;
     String WRONG_EMAIL;
+    String EMPTY_EMAIL;
     RegistrationPage registrationPage;
 
     @BeforeEach
     void setUp() {
         EMAIL = TestData.generateEmail();
         WRONG_EMAIL = TestData.generateWrongEmail();
+        EMPTY_EMAIL = TestData.generateEmptyEmail();
         registrationPage = new RegistrationPage(driver);
     }
 
@@ -63,5 +65,65 @@ public class RegistrationTest extends BaseTest {
         //Ожидаемое поведение: ошибка регистрации
         Assertions.assertTrue(registrationPage.isWrongEmail());
     }
+
+    @Test
+    @DisplayName("1.5 Регистрация без имени")
+    void RegistrationWithoutName() {
+        //1. Клик по кнопке регистрации
+        registrationPage.openRegistration();
+        //2. Регистрация пользователя
+        registrationPage.registerUser(TestData.EMPTY_NAME, TestData.LASTNAME, EMAIL, TestData.PASSWORD, TestData.PASSWORD);
+        //Ожидаемое поведение: ошибка регистрации
+        Assertions.assertTrue(registrationPage.isEmptyName());
+    }
+
+    @Test
+    @DisplayName("1.6 Регистрация без фамилии")
+    void RegistrationWithoutLastName() {
+        //1. Клик по кнопке регистрации
+        registrationPage.openRegistration();
+        //2. Регистрация пользователя
+        registrationPage.registerUser(TestData.NAME, TestData.EMPTY_LASTNAME, EMAIL, TestData.PASSWORD, TestData.PASSWORD);
+        //Ожидаемое поведение: ошибка регистрации
+        Assertions.assertTrue(registrationPage.isEmptyLastName());
+    }
+
+    @Test
+    @DisplayName("1.7 Регистрация без email")
+    void RegistrationWithoutEmail() {
+        //1. Клик по кнопке регистрации
+        registrationPage.openRegistration();
+        //2. Регистрация пользователя
+        registrationPage.registerUser(TestData.NAME, TestData.LASTNAME, EMPTY_EMAIL, TestData.PASSWORD, TestData.PASSWORD);
+        //Ожидаемое поведение: ошибка регистрации
+        Assertions.assertTrue(registrationPage.isEmptyEmail());
+    }
+
+    @Test
+    @DisplayName("1.8 Регистрация с паролем в 6 символов")
+    void RegistrationWithSixSymbols() {
+        //1. Клик по кнопке регистрации
+        registrationPage.openRegistration();
+        //2. Регистрация пользователя
+        registrationPage.registerUser(TestData.NAME, TestData.LASTNAME, EMAIL, TestData.SHORT_PASSWORD, TestData.SHORT_PASSWORD);
+        //Ожидаемое поведение: успешная регистрация
+        Assertions.assertTrue(registrationPage.isRegistrationSuccessful());
+    }
+
+    @Test
+    @DisplayName("1.9 Регистрация с паролем в 5 символов")
+    void RegistrationWithFiveSymbols() {
+        //1. Клик по кнопке регистрации
+        registrationPage.openRegistration();
+        //2. Регистрация пользователя
+        registrationPage.registerUser(TestData.NAME, TestData.LASTNAME, EMAIL, TestData.INVALIDATE_PASSWORD, TestData.INVALIDATE_PASSWORD);
+       //Ожидаемое поведение: ошибка регистрации
+        Assertions.assertTrue(registrationPage.isPasswordInvalidate());
+    }
+
+    //email с пробелами
+    //email в верхнем регистре
+    //очень длинное имя
+    //очень длинная фамилия
 }
 
