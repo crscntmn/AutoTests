@@ -23,4 +23,12 @@ public class TestData {
     public static String generateEmptyEmail() {
         return "";
     }
+
+    public static String generateEmailWithSpace() {
+        return "bu ben" + UUID.randomUUID() + "@mail.ru";
+    }
+
+    public static String generateEmailWithCaps() {
+        return "BUBEN" + UUID.randomUUID() + "@MAIL.RU";
+    }
 }

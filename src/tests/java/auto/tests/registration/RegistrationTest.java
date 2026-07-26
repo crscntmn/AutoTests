@@ -10,6 +10,8 @@ public class RegistrationTest extends BaseTest {
     String EMAIL;
     String WRONG_EMAIL;
     String EMPTY_EMAIL;
+    String EMAIL_WITH_SPACE;
+    String EMAIL_WITH_CAPS;
     RegistrationPage registrationPage;
 
     @BeforeEach
@@ -17,6 +19,8 @@ public class RegistrationTest extends BaseTest {
         EMAIL = TestData.generateEmail();
         WRONG_EMAIL = TestData.generateWrongEmail();
         EMPTY_EMAIL = TestData.generateEmptyEmail();
+        EMAIL_WITH_SPACE = TestData.generateEmailWithSpace();
+        EMAIL_WITH_CAPS = TestData.generateEmailWithCaps();
         registrationPage = new RegistrationPage(driver);
     }
 
@@ -100,7 +104,7 @@ public class RegistrationTest extends BaseTest {
     }
 
     @Test
-    @DisplayName("1.8 Регистрация с паролем в 6 символов")
+    @DisplayName("1.8 Регистрация с паролем в 6 символов (граничное значение)")
     void RegistrationWithSixSymbols() {
         //1. Клик по кнопке регистрации
         registrationPage.openRegistration();
@@ -121,9 +125,26 @@ public class RegistrationTest extends BaseTest {
         Assertions.assertTrue(registrationPage.isPasswordInvalidate());
     }
 
-    //email с пробелами
-    //email в верхнем регистре
-    //очень длинное имя
-    //очень длинная фамилия
+    @Test
+    @DisplayName("1.10 Регистрация с пробелами в email")
+    void RegistrationWithSpaceInEmail() {
+        //1. Клик по кнопке регистрации
+        registrationPage.openRegistration();
+        //2. Регистрация пользователя
+        registrationPage.registerUser(TestData.NAME, TestData.LASTNAME, EMAIL_WITH_SPACE, TestData.PASSWORD, TestData.PASSWORD);
+        //Ожидаемое поведение: ошибка регистрации
+        Assertions.assertTrue(registrationPage.isWrongEmail());
+    }
+
+    @Test
+    @DisplayName("1.11 Регистрация с email в верхнем регистре")
+    void RegistrationWithCapsInEmail() {
+        //1. Клик по кнопке регистрации
+        registrationPage.openRegistration();
+        //2. Регистрация пользователя
+        registrationPage.registerUser(TestData.NAME, TestData.LASTNAME, EMAIL_WITH_CAPS, TestData.PASSWORD, TestData.PASSWORD);
+        //Ожидаемое поведение: ошибка регистрации
+        Assertions.assertTrue(registrationPage.isRegistrationSuccessful());
+    }
 }
 
