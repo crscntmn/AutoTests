@@ -121,7 +121,7 @@ public class RegistrationTest extends BaseTest {
         registrationPage.openRegistration();
         //2. Регистрация пользователя
         registrationPage.registerUser(TestData.NAME, TestData.LASTNAME, EMAIL, TestData.INVALIDATE_PASSWORD, TestData.INVALIDATE_PASSWORD);
-       //Ожидаемое поведение: ошибка регистрации
+        //Ожидаемое поведение: ошибка регистрации
         Assertions.assertTrue(registrationPage.isPasswordInvalidate());
     }
 

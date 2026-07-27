@@ -16,11 +16,13 @@ public class LoginPage extends BasePage {
     private By passwordField = By.id("Password");
     private By rememberMe = By.id("RememberMe");
     private By endLoginButton = By.cssSelector(".button-1.login-button");
-    private By forgotPasswordButton = By.cssSelector(".forgot-password");
+    private By forgotPasswordButton = By.xpath("//a[text()='Forgot password?']");
     private By accountLink = By.cssSelector(".header-links a.account");
     private By logout = By.cssSelector(".ico-logout");
     private By errorMessageIncorrectData = By.cssSelector(".validation-summary-errors");
     private By errorMessageInvalidEmail = By.cssSelector(".field-validation-error");
+    private By RecoverButton = By.name("send-email");
+    private By errorEmailNotFound = By.cssSelector(".result");
 
     public void openAuthorization() {
         wait.until(ExpectedConditions.elementToBeClickable(loginButton)).click();
@@ -44,6 +46,19 @@ public class LoginPage extends BasePage {
         //Нажатие кнопки Log in
     }
 
+    public void clickForgotPassword() {
+        wait.until(ExpectedConditions.elementToBeClickable(forgotPasswordButton)).click();
+        //Нажатие кнопки ForgotPassword
+    }
+
+    public void inputEmailInForgotPassword(String email) {
+        driver.findElement(emailField).sendKeys(email);
+    }
+
+    public void clickRecoverButton() {
+        driver.findElement(RecoverButton).click();
+    }
+
     public String isAuthorizationSuccessful() {
         return wait.until(ExpectedConditions.visibilityOfElementLocated(accountLink)).getText();
         //Успешная авторизация
@@ -57,5 +72,15 @@ public class LoginPage extends BasePage {
     public boolean isInvalidEmailErrorDisplayed() {
         return wait.until(ExpectedConditions.visibilityOfElementLocated(errorMessageInvalidEmail)).isDisplayed();
         //Отображение ошибки неверного email
+    }
+
+    public boolean emailIsNotFound() {
+        String text = wait.until(ExpectedConditions.visibilityOfElementLocated(errorEmailNotFound)).getText();
+        return text.contains("Email not found.");
+    }
+
+    public boolean sentInstructionInEmail() {
+        String text = wait.until(ExpectedConditions.visibilityOfElementLocated(errorEmailNotFound)).getText();
+        return text.contains("Email with instructions has been sent to you.");
     }
 }

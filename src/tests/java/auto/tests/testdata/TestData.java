@@ -7,6 +7,7 @@ public class TestData {
     public static final String SHORT_PASSWORD = "buben1";
     public static final String INVALIDATE_PASSWORD = "buben";
     public static final String WRONG_PASSWORD = "buben12346";
+    public static final String EMPTY_PASSWORD = "";
     public static final String NAME = "name";
     public static final String EMPTY_NAME = "";
     public static final String LASTNAME = "lastName";

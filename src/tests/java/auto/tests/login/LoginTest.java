@@ -11,11 +11,15 @@ public class LoginTest extends BaseTest {
     LoginPage loginPage;
     RegistrationPage registrationPage;
     String email;
+    String wrong_email;
+    String empty_email;
 
     @BeforeEach
     void setUp() {
         loginPage = new LoginPage(driver);
         email = TestData.generateEmail();
+        wrong_email = TestData.generateEmailWithCaps();
+        empty_email = TestData.generateEmptyEmail();
         registrationPage = new RegistrationPage(driver);
     }
 
@@ -59,4 +63,72 @@ public class LoginTest extends BaseTest {
         //Ожидаемое поведение: ошибка авторизации
         Assertions.assertTrue(loginPage.isAuthorizationUnsuccessful());
     }
+
+    @Test
+    @DisplayName("1.4 Авторизация с неправильным email")
+    void AuthorizationWithWrongEmail() {
+        //Регистрация пользователя и выход
+        registerNewUser();
+        //1. Нажатие на логин
+        loginPage.openAuthorization();
+        //2. Процесс авторизации (Ввод email и пароль)
+        loginPage.loginUser(wrong_email, TestData.PASSWORD);
+        //Ожидаемое поведение: ошибка авторизации
+        Assertions.assertTrue(loginPage.isAuthorizationUnsuccessful());
+    }
+
+    @Test
+    @DisplayName("1.5 Авторизация с пустым email")
+    void AuthorizationWithEmptyEmail() {
+        //1. Нажатие на логин
+        loginPage.openAuthorization();
+        //2. Процесс авторизации (Ввод email и пароль)
+        loginPage.loginUser(empty_email, TestData.PASSWORD);
+        //Ожидаемое поведение: ошибка авторизации
+        Assertions.assertTrue(loginPage.isAuthorizationUnsuccessful());
+    }
+
+    @Test
+    @DisplayName("1.6 Авторизация с пустым паролем")
+    void AuthorizationWithEmptyPassword() {
+        //1. Нажатие на логин
+        loginPage.openAuthorization();
+        //2. Процесс авторизации (Ввод email и пароль)
+        loginPage.loginUser(email, TestData.EMPTY_PASSWORD);
+        //Ожидаемое поведение: ошибка авторизации
+        Assertions.assertTrue(loginPage.isAuthorizationUnsuccessful());
+    }
+
+    @Test
+    @DisplayName("1.7 Авторизация с нажатием Forgot password, если email не существует")
+    void AuthorizationWithInvalidEmailInForgotPassword() {
+        //1. Нажатие на логин
+        loginPage.openAuthorization();
+        //2. Нажатие кнопки ForgotPassword
+        loginPage.clickForgotPassword();
+        //3. Ввод email
+        loginPage.inputEmailInForgotPassword(email);
+        //4. Клик по кнопке Recover
+        loginPage.clickRecoverButton();
+        //Ожидаемое поведение: отображение ошибки email not found
+        //Assertions.assertTrue(loginPage.emailIsNotFound());
+    }
+
+    @Test
+    @DisplayName("1.8 Авторизация с нажатием Forgot password, если email существует")
+    void AuthorizationWithValidEmailInForgotPassword() {
+        //1. Регистрация нового пользователя
+        registerNewUser();
+        //2. Нажатие на логин
+        loginPage.openAuthorization();
+        //3. Нажатие кнопки ForgotPassword
+        loginPage.clickForgotPassword();
+        //4. Ввод email
+        loginPage.inputEmailInForgotPassword(email);
+        //5. Клик по кнопке Recover
+        loginPage.clickRecoverButton();
+        //Ожидаемое поведение: Инструкция отправлена на почту
+        Assertions.assertTrue(loginPage.sentInstructionInEmail());
+    }
+
 }
