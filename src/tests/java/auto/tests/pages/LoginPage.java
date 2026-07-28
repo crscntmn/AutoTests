@@ -25,62 +25,54 @@ public class LoginPage extends BasePage {
     private final By errorEmailNotFound = By.cssSelector(".result");
 
     public void openAuthorization() {
-        wait.until(ExpectedConditions.elementToBeClickable(loginButton)).click();
-        wait.until(ExpectedConditions.visibilityOfElementLocated(emailField));
+        click(loginButton);
+        waitVisible(emailField);
     }
 
     public void loginUser(String email, String password) {
-        wait.until(ExpectedConditions.visibilityOfElementLocated(emailField)).sendKeys(email);
-        driver.findElement(passwordField).sendKeys(password);
-        driver.findElement(rememberMe).click();
-        driver.findElement(endLoginButton).click();
+        type(emailField, email);
+        type(passwordField, password);
+        click(rememberMe);
+        click(endLoginButton);
     }
 
     public void logout() {
-        wait.until(ExpectedConditions.elementToBeClickable(logout)).click();
-        //Нажатие кнопки logout
+        click(logout);
     }
 
     public void clickEndLoginButton() {
-        wait.until(ExpectedConditions.elementToBeClickable(endLoginButton)).click();
-        //Нажатие кнопки Log in
+        click(endLoginButton);
     }
 
     public void clickForgotPassword() {
-        wait.until(ExpectedConditions.elementToBeClickable(forgotPasswordButton)).click();
-        //Нажатие кнопки ForgotPassword
+        click(forgotPasswordButton);
     }
 
     public void inputEmailInForgotPassword(String email) {
-        driver.findElement(emailField).sendKeys(email);
+        type(emailField, email);
     }
 
     public void clickRecoverButton() {
-        driver.findElement(RecoverButton).click();
+        click(RecoverButton);
     }
 
     public String isAuthorizationSuccessful() {
-        return wait.until(ExpectedConditions.visibilityOfElementLocated(accountLink)).getText();
-        //Успешная авторизация
+        return getText(accountLink);
     }
 
     public boolean isAuthorizationUnsuccessful() {
-        return wait.until(ExpectedConditions.visibilityOfElementLocated(errorMessageIncorrectData)).isDisplayed();
-        //Не успешная авторизация
+        return isDisplayed(errorMessageIncorrectData);
     }
 
     public boolean isInvalidEmailErrorDisplayed() {
-        return wait.until(ExpectedConditions.visibilityOfElementLocated(errorMessageInvalidEmail)).isDisplayed();
-        //Отображение ошибки неверного email
+        return isDisplayed(errorMessageInvalidEmail);
     }
 
     public boolean emailIsNotFound() {
-        String text = wait.until(ExpectedConditions.visibilityOfElementLocated(errorEmailNotFound)).getText();
-        return text.contains("Email not found.");
+        return getText(errorEmailNotFound).contains("Email not found.");
     }
 
     public boolean sentInstructionInEmail() {
-        String text = wait.until(ExpectedConditions.visibilityOfElementLocated(errorEmailNotFound)).getText();
-        return text.contains("Email with instructions has been sent to you.");
+        return getText(errorEmailNotFound).contains("Email with instructions has been sent to you.");
     }
 }
