@@ -24,19 +24,11 @@ public class LoginPage extends BasePage {
     private final By RecoverButton = By.name("send-email");
     private final By errorEmailNotFound = By.cssSelector(".result");
 
-    public void openAuthorization() {
-        click(loginButton);
-    }
-
     public void loginUser(String email, String password) {
         type(emailField, email);
         type(passwordField, password);
         click(rememberMe);
         click(endLoginButton);
-    }
-
-    public void logout() {
-        click(logout);
     }
 
     public void clickEndLoginButton() {

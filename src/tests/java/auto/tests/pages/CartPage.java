@@ -21,11 +21,6 @@ public class CartPage extends BasePage {
     private final By qty = By.cssSelector(".qty-input");
     private final By addToCartButtonFromDetail = By.cssSelector("input[id^='add-to-cart-button']");
 
-
-    public void openCart() {
-        click(cartButton);
-    }
-
     public void clickCheckout() {
         click(checkoutButton);
     }
