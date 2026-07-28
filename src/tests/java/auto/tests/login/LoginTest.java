@@ -1,5 +1,6 @@
 package auto.tests.login;
 
+import auto.tests.components.HeaderComponent;
 import auto.tests.pages.LoginPage;
 import auto.tests.pages.RegistrationPage;
 import auto.tests.testdata.TestData;
@@ -10,6 +11,7 @@ import org.junit.jupiter.api.*;
 public class LoginTest extends BaseTest {
     LoginPage loginPage;
     RegistrationPage registrationPage;
+    HeaderComponent header;
     String email;
     String wrong_email;
     String empty_email;
@@ -21,13 +23,14 @@ public class LoginTest extends BaseTest {
         wrong_email = TestData.generateEmailWithCaps();
         empty_email = TestData.generateEmptyEmail();
         registrationPage = new RegistrationPage(driver);
+        header = new HeaderComponent(driver);
     }
 
     private void registerNewUser() {
-        registrationPage.openRegistration();
+        header.openRegistration(); //?????
         registrationPage.registerUser(TestData.NAME, TestData.LASTNAME, email, TestData.PASSWORD, TestData.PASSWORD);
         registrationPage.clickContinue();
-        loginPage.logout();
+        header.logout();
     }
 
     @Test
@@ -36,7 +39,7 @@ public class LoginTest extends BaseTest {
         //Регистрация пользователя и выход
         registerNewUser();
         //1. Нажатие на логин
-        loginPage.openAuthorization();
+        header.openLogin();
         //2. Процесс авторизации (Ввод email и пароль)
         loginPage.loginUser(email, TestData.PASSWORD);
         //Ожидаемое поведение: успешная авторизация
@@ -47,7 +50,7 @@ public class LoginTest extends BaseTest {
     @DisplayName("1.2 Авторизация с пустыми полями")
     void AuthorizationWithEmptyValue() {
         //1. Нажатие на логин
-        loginPage.openAuthorization();
+        header.openLogin();
         //2. Нажатие кнопки Log in
         loginPage.clickEndLoginButton();
         Assertions.assertTrue(loginPage.isAuthorizationUnsuccessful());
@@ -57,7 +60,7 @@ public class LoginTest extends BaseTest {
     @DisplayName("1.3 Авторизация с неправильным паролем")
     void AuthorizationWithWrongPassword() {
         //1. Нажатие на логин
-        loginPage.openAuthorization();
+        header.openLogin();
         //2. Процесс авторизации (Ввод email и пароль)
         loginPage.loginUser(email, TestData.WRONG_PASSWORD);
         //Ожидаемое поведение: ошибка авторизации
@@ -70,7 +73,7 @@ public class LoginTest extends BaseTest {
         //Регистрация пользователя и выход
         registerNewUser();
         //1. Нажатие на логин
-        loginPage.openAuthorization();
+        header.openLogin();
         //2. Процесс авторизации (Ввод email и пароль)
         loginPage.loginUser(wrong_email, TestData.PASSWORD);
         //Ожидаемое поведение: ошибка авторизации
@@ -81,7 +84,7 @@ public class LoginTest extends BaseTest {
     @DisplayName("1.5 Авторизация с пустым email")
     void AuthorizationWithEmptyEmail() {
         //1. Нажатие на логин
-        loginPage.openAuthorization();
+        header.openLogin();
         //2. Процесс авторизации (Ввод email и пароль)
         loginPage.loginUser(empty_email, TestData.PASSWORD);
         //Ожидаемое поведение: ошибка авторизации
@@ -92,7 +95,7 @@ public class LoginTest extends BaseTest {
     @DisplayName("1.6 Авторизация с пустым паролем")
     void AuthorizationWithEmptyPassword() {
         //1. Нажатие на логин
-        loginPage.openAuthorization();
+        header.openLogin();
         //2. Процесс авторизации (Ввод email и пароль)
         loginPage.loginUser(email, TestData.EMPTY_PASSWORD);
         //Ожидаемое поведение: ошибка авторизации
@@ -103,7 +106,7 @@ public class LoginTest extends BaseTest {
     @DisplayName("1.7 Авторизация с нажатием Forgot password, если email не существует")
     void AuthorizationWithInvalidEmailInForgotPassword() {
         //1. Нажатие на логин
-        loginPage.openAuthorization();
+        header.openLogin();
         //2. Нажатие кнопки ForgotPassword
         loginPage.clickForgotPassword();
         //3. Ввод email
@@ -111,7 +114,7 @@ public class LoginTest extends BaseTest {
         //4. Клик по кнопке Recover
         loginPage.clickRecoverButton();
         //Ожидаемое поведение: отображение ошибки email not found
-        //Assertions.assertTrue(loginPage.emailIsNotFound());
+        Assertions.assertTrue(loginPage.emailIsNotFound());
     }
 
     @Test
@@ -120,7 +123,7 @@ public class LoginTest extends BaseTest {
         //1. Регистрация нового пользователя
         registerNewUser();
         //2. Нажатие на логин
-        loginPage.openAuthorization();
+        header.openLogin();
         //3. Нажатие кнопки ForgotPassword
         loginPage.clickForgotPassword();
         //4. Ввод email

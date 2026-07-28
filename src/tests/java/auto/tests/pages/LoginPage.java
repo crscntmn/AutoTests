@@ -26,7 +26,6 @@ public class LoginPage extends BasePage {
 
     public void openAuthorization() {
         click(loginButton);
-        waitVisible(emailField);
     }
 
     public void loginUser(String email, String password) {

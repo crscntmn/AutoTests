@@ -56,8 +56,6 @@ public class CartPage extends BasePage {
     }
 
     public void addProductFromDetail(int quantity) {
-        WebElement inputQty = wait.until(ExpectedConditions.visibilityOfElementLocated(qty));
-        inputQty.clear();
         type(qty, String.valueOf(quantity));
         click(addToCartButtonFromDetail);
     }
