@@ -27,64 +27,56 @@ public class RegistrationPage extends BasePage {
     private final By errorMessage = By.className("field-validation-error");
 
     public void openRegistration() {
-        wait.until(ExpectedConditions.elementToBeClickable(registerButton)).click();
+        click(registerButton);
     }
 
     public void endRegistration() {
-        wait.until(ExpectedConditions.elementToBeClickable(endRegisterButton)).click();
+        click(endRegisterButton);
     }
 
     public void registerUser(String firstName, String lastName, String email, String password, String confirmPassword) {
-        wait.until(ExpectedConditions.elementToBeClickable(gender)).click();
-        driver.findElement(firstNameField).sendKeys(firstName);
-        driver.findElement(lastNameField).sendKeys(lastName);
-        driver.findElement(emailField).sendKeys(email);
-        driver.findElement(passwordField).sendKeys(password);
-        driver.findElement(confirmPasswordField).sendKeys(confirmPassword);
-        wait.until(ExpectedConditions.elementToBeClickable(endRegisterButton)).click();
+        click(gender);
+        type(firstNameField, firstName);
+        type(lastNameField, lastName);
+        type(emailField, email);
+        type(passwordField, password);
+        type(confirmPasswordField, confirmPassword);
+        click(endRegisterButton);
     }
 
     public void clickContinue() {
-        wait.until(ExpectedConditions.elementToBeClickable(continueButton)).click();
+        click(continueButton);
     }
 
     public boolean isRegistrationSuccessful() {
-        String text = wait.until(ExpectedConditions.visibilityOfElementLocated(successMessage)).getText();
-        return text.contains("Your registration completed");
+        return getText(successMessage).contains("Your registration completed");
     }
 
     public int getErrorCount() {
-        List<WebElement> errors = wait.until(ExpectedConditions.visibilityOfAllElementsLocatedBy(errorMessage));
-        return errors.size();
+        return findAll(errorMessage).size();
     }
 
     public boolean isPasswordDoNotMatch() {
-        String text = wait.until(ExpectedConditions.visibilityOfElementLocated(errorMessage)).getText();
-        return text.contains("The password and confirmation password do not match.");
+        return getText(errorMessage).contains("The password and confirmation password do not match.");
     }
 
     public boolean isWrongEmail() {
-        String text = wait.until(ExpectedConditions.visibilityOfElementLocated(errorMessage)).getText();
-        return text.contains("Wrong email");
+        return getText(errorMessage).contains("Wrong email");
     }
 
     public boolean isEmptyName() {
-        String text = wait.until(ExpectedConditions.visibilityOfElementLocated(errorMessage)).getText();
-        return text.contains("First name is required.");
+        return getText(errorMessage).contains("First name is required.");
     }
 
     public boolean isEmptyLastName() {
-        String text = wait.until(ExpectedConditions.visibilityOfElementLocated(errorMessage)).getText();
-        return text.contains("Last name is required.");
+        return getText(errorMessage).contains("Last name is required.");
     }
 
     public boolean isEmptyEmail() {
-        String text = wait.until(ExpectedConditions.visibilityOfElementLocated(errorMessage)).getText();
-        return text.contains("Email is required.");
+        return getText(errorMessage).contains("Email is required.");
     }
 
     public boolean isPasswordInvalidate() {
-        String text = wait.until(ExpectedConditions.visibilityOfElementLocated(errorMessage)).getText();
-        return text.contains("The password should have at least 6 characters.");
+        return getText(errorMessage).contains("The password should have at least 6 characters.");
     }
 }

@@ -23,42 +23,40 @@ public class CartPage extends BasePage {
 
 
     public void openCart() {
-        wait.until(ExpectedConditions.elementToBeClickable(cartButton)).click();
+        click(cartButton);
     }
 
     public void clickCheckout() {
-        wait.until(ExpectedConditions.elementToBeClickable(checkoutButton)).click();
+        click(checkoutButton);
     }
 
     public void addProductToCart(String productName) {
         By addToCart = By.xpath("//a[text()='" + productName + "']/ancestor::div[@class='item-box']//input[@value='Add to cart']");
-        wait.until(ExpectedConditions.elementToBeClickable(addToCart)).click();
+        click(addToCart);
     }
 
     public boolean addProductToCartSuccessful() {
-        return wait.until(ExpectedConditions.visibilityOfElementLocated(successfulAddToCart)).isDisplayed();
+        return isDisplayed(successfulAddToCart);
     }
 
     public boolean showTermsOfService() {
-        return wait.until(ExpectedConditions.elementToBeClickable(termsOfServiceError)).isDisplayed();
+        return isDisplayed(termsOfServiceError);
     }
 
     public void clickCheckbox() {
-        wait.until(ExpectedConditions.elementToBeClickable(termsOfServiceCheckbox)).click();
+        click(termsOfServiceCheckbox);
     }
 
     public boolean needAuthorization() {
-        return wait.until(ExpectedConditions.visibilityOfElementLocated(loginTitle)).isDisplayed();
+        return isDisplayed(loginTitle);
     }
 
     public boolean isProductDetailOpened() {
-        return wait.until(ExpectedConditions.visibilityOfElementLocated(qty)).isDisplayed();
+        return isDisplayed(qty);
     }
 
     public void addProductFromDetail(int quantity) {
-        WebElement inputQty = wait.until(ExpectedConditions.visibilityOfElementLocated(qty));
-        inputQty.clear();
-        inputQty.sendKeys(String.valueOf(quantity));
-        wait.until(ExpectedConditions.elementToBeClickable(addToCartButtonFromDetail)).click();
+        type(qty, String.valueOf(quantity));
+        click(addToCartButtonFromDetail);
     }
 }

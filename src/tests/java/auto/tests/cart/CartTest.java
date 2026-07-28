@@ -1,5 +1,6 @@
 package auto.tests.cart;
 
+import auto.tests.components.HeaderComponent;
 import auto.tests.pages.CartPage;
 import auto.tests.pages.LoginPage;
 import auto.tests.pages.RegistrationPage;
@@ -13,6 +14,7 @@ public class CartTest extends BaseTest {
     CartPage cartPage;
     RegistrationPage registrationPage;
     LoginPage loginPage;
+    HeaderComponent header;
     private final String Laptop = "14.1-inch Laptop";
     private final String GiftCard = "$25 Virtual Gift Card";
     private final String CheapComputer = "Build your own cheap computer";
@@ -22,6 +24,7 @@ public class CartTest extends BaseTest {
     @BeforeEach
     void Setup() {
         cartPage = new CartPage(driver);
+        header = new HeaderComponent(driver);
     }
 
     @Test
@@ -32,7 +35,7 @@ public class CartTest extends BaseTest {
         //Ожидаемое поведение: товар успешно добавлен в корзину
         Assertions.assertTrue(cartPage.addProductToCartSuccessful());
         //2. Переход в корзину
-        cartPage.openCart();
+        header.openCart();
         //3. Нажатие на кнопку "Checkout"
         cartPage.clickCheckout();
         //Ожидаемое поведение: отображение окна об обсутствии принятия соглашения
@@ -47,7 +50,7 @@ public class CartTest extends BaseTest {
         //Ожидаемое поведение: товар успешно добавлен в корзину
         Assertions.assertTrue(cartPage.addProductToCartSuccessful());
         //2. Переход в корзину
-        cartPage.openCart();
+        header.openCart();
         //3. Прожатие чекбокса
         cartPage.clickCheckbox();
         //4. Нажатие на кнопку "Checkout"
