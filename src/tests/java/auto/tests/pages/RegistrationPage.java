@@ -26,10 +26,6 @@ public class RegistrationPage extends BasePage {
     private final By successMessage = By.className("result");
     private final By errorMessage = By.className("field-validation-error");
 
-    public void openRegistration() {
-        click(registerButton);
-    }
-
     public void endRegistration() {
         click(endRegisterButton);
     }
