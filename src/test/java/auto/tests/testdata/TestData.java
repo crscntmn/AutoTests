@@ -3,7 +3,7 @@ package auto.tests.testdata;
 import java.util.UUID;
 
 public class TestData {
-    public static final String PASSWORD = "baben12345";
+    public static final String PASSWORD = "buben12345";
     public static final String SHORT_PASSWORD = "buben1";
     public static final String INVALIDATE_PASSWORD = "buben";
     public static final String WRONG_PASSWORD = "buben12346";
