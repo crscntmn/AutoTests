@@ -8,6 +8,7 @@ import org.openqa.selenium.Dimension;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.chrome.ChromeDriver;
 import org.openqa.selenium.support.ui.WebDriverWait;
+import org.openqa.selenium.chrome.ChromeOptions;
 
 import java.time.Duration;
 
@@ -17,7 +18,16 @@ public class BaseTest {
 
     @BeforeEach
     void openPage() {
-        driver = new ChromeDriver();
+        ChromeOptions options = new ChromeOptions();
+
+        if (System.getenv("CI") != null) {
+            options.addArguments("--headless=new");
+            options.addArguments("--no-sandbox");
+            options.addArguments("--disable-dev-shm-usage");
+        }
+
+        driver = new ChromeDriver(options);
+
         driver.manage().window().setSize(new Dimension(1920, 1080));
         driver.get(Config.URL);
     }
