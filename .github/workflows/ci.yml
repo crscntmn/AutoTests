@@ -25,12 +25,12 @@ jobs:
           java-version: ${{ matrix.java }}
           cache: maven
 
-      - name: Run tests
+      - name: Tests (Java ${{ matrix.java }})
         run: mvn clean test
 
       - name: Upload test reports
         if: always()
         uses: actions/upload-artifact@v4
         with:
-              name: surefire-reports
+              name: surefire-reports-java-${{ matrix.java }}
               path: target/surefire-reports/
