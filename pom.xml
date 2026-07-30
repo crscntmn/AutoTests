@@ -16,10 +16,17 @@
   </properties>
 
   <dependencies>
+
     <dependency>
       <groupId>org.seleniumhq.selenium</groupId>
       <artifactId>selenium-java</artifactId>
       <version>4.27.0</version>
+    </dependency>
+
+    <dependency>
+      <groupId>io.github.bonigarcia</groupId>
+      <artifactId>webdrivermanager</artifactId>
+      <version>6.1.0</version>
     </dependency>
 
     <dependency>
@@ -28,6 +35,7 @@
       <version>5.10.2</version>
       <scope>test</scope>
     </dependency>
+
   </dependencies>
   <build>
     <plugins>
