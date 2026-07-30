@@ -6,24 +6,23 @@ on:
       - main
       - develop
 
-  pull_request:
-    branches:
-      - main
-      - develop
-
 jobs:
   test:
     runs-on: ubuntu-latest
+
+    strategy:
+      matrix:
+        java: [17, 21]
 
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Set up Java 17
+      - name: Set up Java
         uses: actions/setup-java@v4
         with:
           distribution: temurin
-          java-version: '17'
+          java-version: ${{ matrix.java }}
           cache: maven
 
       - name: Run tests
