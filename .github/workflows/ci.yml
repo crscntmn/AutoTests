@@ -49,7 +49,7 @@ jobs:
 
       - name: Run tagged tests
         if: inputs.suite == 'smoke' || inputs.suite == 'regression'
-        run: mvn clean test -DincludeTags=${{ inputs.suite }}
+        run: mvn clean test -Dgroups=${{ inputs.suite }}
 
       - name: Upload test reports
         if: always()
