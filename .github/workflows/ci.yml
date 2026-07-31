@@ -10,6 +10,13 @@ jobs:
   test:
     runs-on: ubuntu-latest
 
+    env:
+      PASSWORD: ${{ secrets.PASSWORD }}
+      SHORT_PASSWORD: ${{ secrets.SHORT_PASSWORD }}
+      INVALIDATE_PASSWORD: ${{ secrets.INVALIDATE_PASSWORD }}
+      WRONG_PASSWORD: ${{ secrets.WRONG_PASSWORD }}
+
+
     strategy:
       matrix:
         java: [17, 21]
