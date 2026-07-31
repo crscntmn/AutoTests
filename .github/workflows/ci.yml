@@ -6,25 +6,38 @@ on:
       - main
       - develop
 
-  pull_request:
-    branches:
-      - main
-      - develop
-
 jobs:
   test:
     runs-on: ubuntu-latest
+
+    env:
+      PASSWORD: ${{ secrets.PASSWORD }}
+      SHORT_PASSWORD: ${{ secrets.SHORT_PASSWORD }}
+      INVALIDATE_PASSWORD: ${{ secrets.INVALIDATE_PASSWORD }}
+      WRONG_PASSWORD: ${{ secrets.WRONG_PASSWORD }}
+
+
+    strategy:
+      matrix:
+        java: [17, 21]
 
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Set up Java 17
+      - name: Set up Java
         uses: actions/setup-java@v4
         with:
           distribution: temurin
-          java-version: '17'
+          java-version: ${{ matrix.java }}
           cache: maven
 
-      - name: Run tests
+      - name: Tests (Java ${{ matrix.java }})
         run: mvn clean test
+
+      - name: Upload test reports
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+              name: surefire-reports-java-${{ matrix.java }}
+              path: target/surefire-reports/
