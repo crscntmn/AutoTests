@@ -34,6 +34,14 @@ public class TestData {
     }
 
     private static String getEnvOrDefault(String envName, String defaultValue) {
-        return System.getenv().getOrDefault(envName, defaultValue);
+        String value = System.getenv(envName);
+
+        if (value != null) {
+            System.out.println("[CONFIG] " + envName + " loaded from environment");
+            return value;
+        }
+
+        System.out.println("[CONFIG] " + envName + " loaded from default value");
+        return defaultValue;
     }
 }
