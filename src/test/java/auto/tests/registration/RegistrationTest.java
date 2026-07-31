@@ -27,6 +27,7 @@ public class RegistrationTest extends BaseTest {
         header = new HeaderComponent(driver);
     }
 
+    @Tag("smoke")
     @Test
     @DisplayName("1.1 Успешная регистрация")
     void SuccessRegistration() {
@@ -51,6 +52,7 @@ public class RegistrationTest extends BaseTest {
         Assertions.assertTrue(registrationPage.getErrorCount() >= 5);
     }
 
+    @Tag("regression")
     @Test
     @DisplayName("1.3 Регистрация с несовпадающими паролями")
     void RegistrationWithMismatchPasswords() {
@@ -62,6 +64,7 @@ public class RegistrationTest extends BaseTest {
         Assertions.assertTrue(registrationPage.isPasswordDoNotMatch());
     }
 
+    @Tag("regression")
     @Test
     @DisplayName("1.4 Регистрация с некорректным email")
     void RegistrationWithIncorrectEmail() {
@@ -106,6 +109,7 @@ public class RegistrationTest extends BaseTest {
         Assertions.assertTrue(registrationPage.isEmptyEmail());
     }
 
+    @Tag("regression")
     @Test
     @DisplayName("1.8 Регистрация с паролем в 6 символов (граничное значение)")
     void RegistrationWithSixSymbols() {
@@ -139,6 +143,7 @@ public class RegistrationTest extends BaseTest {
         Assertions.assertTrue(registrationPage.isWrongEmail());
     }
 
+    @Tag("regression")
     @Test
     @DisplayName("1.11 Регистрация с email в верхнем регистре")
     void RegistrationWithCapsInEmail() {
