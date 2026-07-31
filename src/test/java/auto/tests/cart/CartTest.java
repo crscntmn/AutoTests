@@ -5,10 +5,8 @@ import auto.tests.pages.CartPage;
 import auto.tests.pages.LoginPage;
 import auto.tests.pages.RegistrationPage;
 import base.BaseTest;
-import org.junit.jupiter.api.Assertions;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.DisplayName;
-import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.*;
+import org.junit.jupiter.api.Tag;
 
 public class CartTest extends BaseTest {
     CartPage cartPage;
@@ -42,6 +40,7 @@ public class CartTest extends BaseTest {
         Assertions.assertTrue(cartPage.showTermsOfService());
     }
 
+    @Tag("smoke")
     @Test
     @DisplayName("1.2 Оформление заказа анонимом с условиями соглашения")
     void unknownWithCheckbox() {
@@ -59,6 +58,7 @@ public class CartTest extends BaseTest {
         Assertions.assertTrue(cartPage.needAuthorization());
     }
 
+    @Tag("regression")
     @Test
     @DisplayName("1.3 Добавление дешевого компьютера в корзину анонимом")
     void cheapComputerToCard() {

@@ -6,6 +6,7 @@ import auto.tests.pages.RegistrationPage;
 import auto.tests.testdata.TestData;
 import base.BaseTest;
 import org.junit.jupiter.api.*;
+import org.junit.jupiter.api.Tag;
 
 
 public class LoginTest extends BaseTest {
@@ -27,12 +28,13 @@ public class LoginTest extends BaseTest {
     }
 
     private void registerNewUser() {
-        header.openRegistration(); //?????
+        header.openRegistration();
         registrationPage.registerUser(TestData.NAME, TestData.LASTNAME, email, TestData.PASSWORD, TestData.PASSWORD);
         registrationPage.clickContinue();
         header.logout();
     }
 
+    @Tag("smoke")
     @Test
     @DisplayName("1.1 Успешная авторизация")
     void SuccessAuthorization() {
@@ -56,6 +58,7 @@ public class LoginTest extends BaseTest {
         Assertions.assertTrue(loginPage.isAuthorizationUnsuccessful());
     }
 
+    @Tag("regression")
     @Test
     @DisplayName("1.3 Авторизация с неправильным паролем")
     void AuthorizationWithWrongPassword() {
@@ -67,6 +70,7 @@ public class LoginTest extends BaseTest {
         Assertions.assertTrue(loginPage.isAuthorizationUnsuccessful());
     }
 
+    @Tag("regression")
     @Test
     @DisplayName("1.4 Авторизация с неправильным email")
     void AuthorizationWithWrongEmail() {
@@ -117,6 +121,7 @@ public class LoginTest extends BaseTest {
         Assertions.assertTrue(loginPage.emailIsNotFound());
     }
 
+    @Tag("smoke")
     @Test
     @DisplayName("1.8 Авторизация с нажатием Forgot password, если email существует")
     void AuthorizationWithValidEmailInForgotPassword() {
