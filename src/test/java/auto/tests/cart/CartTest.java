@@ -6,6 +6,7 @@ import auto.tests.pages.LoginPage;
 import auto.tests.pages.RegistrationPage;
 import base.BaseTest;
 import org.junit.jupiter.api.*;
+import org.junit.jupiter.api.Tag;
 
 public class CartTest extends BaseTest {
     CartPage cartPage;

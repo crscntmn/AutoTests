@@ -6,6 +6,7 @@ import auto.tests.pages.RegistrationPage;
 import auto.tests.testdata.TestData;
 import base.BaseTest;
 import org.junit.jupiter.api.*;
+import org.junit.jupiter.api.Tag;
 
 
 public class LoginTest extends BaseTest {
