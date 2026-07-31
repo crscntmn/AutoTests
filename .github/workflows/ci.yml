@@ -6,6 +6,18 @@ on:
       - main
       - develop
 
+workflow_dispatch:
+  inputs:
+    suite:
+      description: 'Test suite'
+      required: true
+      default: 'all'
+      type: choice
+      options:
+        - all
+        - smoke
+        - regression
+
 jobs:
   test:
     runs-on: ubuntu-latest
