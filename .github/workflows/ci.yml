@@ -6,6 +6,13 @@ on:
       - main
       - develop
 
+  pull_request:
+    branches:
+      - main
+
+  schedule:
+    - cron: '0 0 * * *'
+
   workflow_dispatch:
     inputs:
       suite:
@@ -44,7 +51,7 @@ jobs:
           cache: maven
 
       - name: Run all tests
-        if: github.event_name == 'push' || inputs.suite == 'all'
+        if: github.event_name == 'push' || github.event_name == 'schedule' || inputs.suite == 'all'
         run: mvn clean test
 
       - name: Run tagged tests
