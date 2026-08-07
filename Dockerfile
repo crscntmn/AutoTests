@@ -6,4 +6,4 @@ COPY . .
 
 RUN mvn dependency:go-offline
 
-CMD ["mvn", "clean", "test"]
+CMD ["mvn","clean","test"]

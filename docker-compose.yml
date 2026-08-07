@@ -1,0 +1,34 @@
+services:
+
+  chrome:
+    image: selenium/standalone-chrome:latest
+    container_name: chrome
+
+    ports:
+      - "4444:4444"
+
+    shm_size: "2gb"
+
+  autotests:
+    build: .
+
+    container_name: autotests
+
+    depends_on:
+      - chrome
+
+    environment:
+      SELENIUM_REMOTE_URL: http://chrome:4444/wd/hub
+
+      PASSWORD: ${PASSWORD}
+      SHORT_PASSWORD: ${SHORT_PASSWORD}
+      INVALIDATE_PASSWORD: ${INVALIDATE_PASSWORD}
+      WRONG_PASSWORD: ${WRONG_PASSWORD}
+
+      TEST_GROUP: ${TEST_GROUP}
+
+    command: >
+      sh -c "mvn clean test ${TEST_GROUP:+-Dgroups=$TEST_GROUP}"
+
+    volumes:
+      - ./allure-results:/app/allure-results
