@@ -13,7 +13,7 @@ public class CartPage extends BasePage {
 
     //Локаторы
     private final By checkoutButton = By.cssSelector(".button-1.checkout-button");
-    private final By cartButton = By.cssSelector(".cart-qty");
+    //private final By cartButton = By.cssSelector(".cart-qty");
     private final By successfulAddToCart = By.cssSelector(".bar-notification.success");
     private final By termsOfServiceError = By.xpath("//p[contains(text(),'Please accept the terms of service')]");
     private final By termsOfServiceCheckbox = By.id("termsofservice");
@@ -23,11 +23,6 @@ public class CartPage extends BasePage {
 
     public void clickCheckout() {
         click(checkoutButton);
-    }
-
-    public void addProductToCart(String productName) {
-        By addToCart = By.xpath("//a[text()='" + productName + "']/ancestor::div[@class='item-box']//input[@value='Add to cart']");
-        click(addToCart);
     }
 
     public boolean addProductToCartSuccessful() {

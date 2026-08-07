@@ -33,4 +33,8 @@ public class HeaderComponent extends BasePage {
         click(logoutButton);
     }
 
+    public void addProductToCart(String productName) {
+        By addToCart = By.xpath("//a[text()='" + productName + "']/ancestor::div[@class='item-box']//input[@value='Add to cart']");
+        click(addToCart);
+    }
 }

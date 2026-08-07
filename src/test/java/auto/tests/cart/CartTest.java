@@ -29,7 +29,7 @@ public class CartTest extends BaseTest {
     @DisplayName("1.1 Оформление заказа аномимом без условий соглашения")
     void unknownWithoutCheckbox() {
         //1. Добавление ноутбука в корзину
-        cartPage.addProductToCart(Laptop);
+        header.addProductToCart(Laptop);
         //Ожидаемое поведение: товар успешно добавлен в корзину
         Assertions.assertTrue(cartPage.addProductToCartSuccessful());
         //2. Переход в корзину
@@ -45,7 +45,7 @@ public class CartTest extends BaseTest {
     @DisplayName("1.2 Оформление заказа анонимом с условиями соглашения")
     void unknownWithCheckbox() {
         //1. Добавление товара в корзину
-        cartPage.addProductToCart(Laptop);
+        header.addProductToCart(Laptop);
         //Ожидаемое поведение: товар успешно добавлен в корзину
         Assertions.assertTrue(cartPage.addProductToCartSuccessful());
         //2. Переход в корзину
@@ -63,7 +63,7 @@ public class CartTest extends BaseTest {
     @DisplayName("1.3 Добавление дешевого компьютера в корзину анонимом")
     void cheapComputerToCard() {
         //1. Добавление дешевого компьютера в корзину
-        cartPage.addProductToCart(CheapComputer);
+        header.addProductToCart(CheapComputer);
         //Ожидаемое поведение: Открытие деталки товара с выбором комплектующих
         Assertions.assertTrue(cartPage.isProductDetailOpened());
         //2. Ввод количества товара и нажатие кнопки "Add to cart"
