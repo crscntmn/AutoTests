@@ -54,14 +54,30 @@ jobs:
         if: always()
         run: docker compose ps -a
 
-      - name: Show test reports
+      - name: Collect test reports
         if: always()
         run: |
-          echo "===== SUREFIRE REPORTS ====="
-          docker cp autotests:/app/target ./target || true
+          mkdir -p docker-results
 
-          if [ -d "./target/surefire-reports" ]; then
-            find ./target/surefire-reports -maxdepth 1 -type f -print
-          else
-            echo "Surefire reports were not found"
-          fi
+          docker cp autotests:/app/target/surefire-reports ./docker-results/surefire-reports || true
+          docker cp autotests:/app/allure-results ./docker-results/allure-results || true
+
+          echo "===== SUREFIRE REPORTS ====="
+          find docker-results/surefire-reports -type f 2>/dev/null || true
+
+          echo "===== ALLURE RESULTS ====="
+          find docker-results/allure-results -type f 2>/dev/null || true
+
+      - name: Upload Surefire reports
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: docker-surefire-reports
+          path: docker-results/surefire-reports/
+
+      - name: Upload Allure results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: docker-allure-results
+          path: docker-results/allure-results/
