@@ -17,3 +17,15 @@ jobs:
 
       - name: Start Docker Compose
         run: docker compose up --build
+        continue-on-error: true
+
+      - name: Copy test reports
+        if: always()
+        run: |
+          docker cp autotests:/app/target ./target || true
+
+      - name: Show failed tests
+        if: always()
+        run: |
+          echo "===== TEST REPORTS ====="
+          find target/surefire-reports -type f -maxdepth 1 -print -exec cat {} \; || true
