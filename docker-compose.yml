@@ -3,19 +3,20 @@ services:
   chrome:
     image: selenium/standalone-chrome:latest
     container_name: chrome
-
     ports:
       - "4444:4444"
-
     shm_size: "2gb"
+
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:4444/status || exit 1"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+      start_period: 10s
 
   autotests:
     build: .
-
     container_name: autotests
-
-    depends_on:
-      - chrome
 
     environment:
       SELENIUM_REMOTE_URL: http://chrome:4444/wd/hub
@@ -25,10 +26,11 @@ services:
       INVALIDATE_PASSWORD: ${INVALIDATE_PASSWORD}
       WRONG_PASSWORD: ${WRONG_PASSWORD}
 
-      TEST_GROUP: ${TEST_GROUP}
+      TEST_GROUP: ${TEST_GROUP:-}
+
+    depends_on:
+      chrome:
+        condition: service_healthy
 
     command: >
       sh -c "mvn clean test ${TEST_GROUP:+-Dgroups=$TEST_GROUP}"
-
-    volumes:
-      - ./allure-results:/app/allure-results
