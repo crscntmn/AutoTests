@@ -29,8 +29,23 @@ jobs:
 
       - name: Check Selenium
         run: |
+          echo "Waiting for Selenium..."
+
+          for i in {1..30}; do
+            if curl -sf http://localhost:4444/status > /dev/null; then
+              echo "Selenium is ready!"
+              curl -s http://localhost:4444/status
+              exit 0
+            fi
+
+            echo "Selenium is not ready yet... attempt $i/30"
+            sleep 2
+          done
+
+          echo "Selenium did not become ready"
           docker compose ps
-          curl --fail http://localhost:4444/status
+          docker compose logs chrome
+          exit 1
 
       - name: Run tests
         run: docker compose up autotests
