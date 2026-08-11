@@ -68,16 +68,55 @@ jobs:
           echo "===== ALLURE RESULTS ====="
           find docker-results/allure-results -type f 2>/dev/null || true
 
-      - name: Upload Surefire reports
+      - name: Upload Docker test reports
         if: always()
         uses: actions/upload-artifact@v4
         with:
           name: docker-surefire-reports
           path: docker-results/surefire-reports/
 
-      - name: Upload Allure results
+      - name: Upload Docker Allure results
         if: always()
         uses: actions/upload-artifact@v4
         with:
           name: docker-allure-results
           path: docker-results/allure-results/
+
+  docker-allure-report:
+    name: Generate Docker Allure Report
+    runs-on: ubuntu-latest
+    needs: docker-tests
+    if: always()
+
+    steps:
+      - name: Download Docker Allure results
+        uses: actions/download-artifact@v4
+        with:
+          name: docker-allure-results
+          path: allure-results
+
+      - name: Show Allure results
+        run: |
+          echo "===== DOCKER ALLURE RESULTS ====="
+          find allure-results -type f
+
+      - name: Set up Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 21
+
+      - name: Install Allure CLI
+        run: |
+          curl -Lo allure.tgz https://github.com/allure-framework/allure2/releases/download/2.34.1/allure-2.34.1.tgz
+          tar -xzf allure.tgz
+
+      - name: Generate Docker Allure Report
+        run: |
+          ./allure-2.34.1/bin/allure generate allure-results --clean -o docker-allure-report
+
+      - name: Upload Docker Allure Report
+        uses: actions/upload-artifact@v4
+        with:
+          name: docker-allure-report
+          path: docker-allure-report/
