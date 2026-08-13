@@ -48,6 +48,8 @@ jobs:
           exit 1
 
       - name: Run tests
+        id: run-tests
+        continue-on-error: true
         run: docker compose up autotests
 
       - name: Show Docker containers
@@ -81,6 +83,10 @@ jobs:
         with:
           name: docker-allure-results
           path: docker-results/allure-results/
+
+      - name: Fail workflow if tests failed
+        if: steps.run-tests.outcome == 'failure'
+        run: exit 1
 
   docker-allure-report:
     name: Generate Docker Allure Report
