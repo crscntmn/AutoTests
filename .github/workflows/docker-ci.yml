@@ -7,6 +7,9 @@ on:
 
   workflow_dispatch:
 
+permissions:
+  contents: read
+
 jobs:
   docker-tests:
     runs-on: ubuntu-latest
@@ -59,10 +62,14 @@ jobs:
       - name: Collect test reports
         if: always()
         run: |
-          mkdir -p docker-results
+          mkdir -p docker-results/surefire-reports
+          mkdir -p docker-results/allure-results
 
-          docker cp autotests:/app/target/surefire-reports ./docker-results/surefire-reports || true
-          docker cp autotests:/app/allure-results ./docker-results/allure-results || true
+          echo "===== COPYING SUREFIRE REPORTS ====="
+          docker cp autotests:/app/target/surefire-reports/. docker-results/surefire-reports/ || true
+
+          echo "===== COPYING ALLURE RESULTS ====="
+          docker cp autotests:/app/allure-results/. docker-results/allure-results/ || true
 
           echo "===== SUREFIRE REPORTS ====="
           find docker-results/surefire-reports -type f 2>/dev/null || true
@@ -76,6 +83,7 @@ jobs:
         with:
           name: docker-surefire-reports
           path: docker-results/surefire-reports/
+          if-no-files-found: warn
 
       - name: Upload Docker Allure results
         if: always()
@@ -83,6 +91,7 @@ jobs:
         with:
           name: docker-allure-results
           path: docker-results/allure-results/
+          if-no-files-found: error
 
       - name: Fail workflow if tests failed
         if: steps.run-tests.outcome == 'failure'
@@ -106,23 +115,45 @@ jobs:
           echo "===== DOCKER ALLURE RESULTS ====="
           find allure-results -type f
 
+          echo "===== FILE COUNT ====="
+          find allure-results -type f | wc -l
+
       - name: Set up Java
         uses: actions/setup-java@v5
         with:
           distribution: temurin
           java-version: 21
+          cache: maven
 
       - name: Install Allure CLI
         run: |
-          curl -Lo allure.tgz https://github.com/allure-framework/allure2/releases/download/2.34.1/allure-2.34.1.tgz
+          curl -Lo allure.tgz \
+            https://github.com/allure-framework/allure2/releases/download/2.34.1/allure-2.34.1.tgz
+
           tar -xzf allure.tgz
+
+      - name: Check Allure version
+        run: |
+          ./allure-2.34.1/bin/allure --version
 
       - name: Generate Docker Allure Report
         run: |
-          ./allure-2.34.1/bin/allure generate allure-results --clean -o docker-allure-report
+          ./allure-2.34.1/bin/allure generate \
+            allure-results \
+            --clean \
+            -o docker-allure-report
+
+      - name: Verify Docker Allure Report
+        run: |
+          echo "===== DOCKER ALLURE REPORT ====="
+          find docker-allure-report -maxdepth 2 -type f | head -50
+
+          test -f docker-allure-report/index.html
 
       - name: Upload Docker Allure Report
+        if: always()
         uses: actions/upload-artifact@v6
         with:
           name: docker-allure-report
           path: docker-allure-report/
+          if-no-files-found: error
