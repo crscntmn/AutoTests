@@ -116,7 +116,7 @@ jobs:
           ./allure-2.34.1/bin/allure generate allure-results --clean -o docker-allure-report
 
       - name: Upload Docker Allure Report
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v6
         with:
           name: docker-allure-report
           path: docker-allure-report/
