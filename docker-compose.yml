@@ -1,8 +1,7 @@
 services:
 
   chrome:
-    image: selenium/standalone-chrome:latest
-    container_name: chrome
+    image: selenium/standalone-chrome:4.39.0
     ports:
       - "4444:4444"
     shm_size: "2gb"
@@ -16,7 +15,6 @@ services:
 
   autotests:
     build: .
-    container_name: autotests
 
     environment:
       SELENIUM_REMOTE_URL: http://chrome:4444/wd/hub
