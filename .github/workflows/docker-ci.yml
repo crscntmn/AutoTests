@@ -70,14 +70,14 @@ jobs:
 
       - name: Upload Docker test reports
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v6
         with:
           name: docker-surefire-reports
           path: docker-results/surefire-reports/
 
       - name: Upload Docker Allure results
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v6
         with:
           name: docker-allure-results
           path: docker-results/allure-results/
@@ -90,7 +90,7 @@ jobs:
 
     steps:
       - name: Download Docker Allure results
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v6
         with:
           name: docker-allure-results
           path: allure-results
