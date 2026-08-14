@@ -1,12 +1,9 @@
 name: Allure Pages
 
 on:
-  workflow_run:
-    workflows:
-      - Selenium CI
-      - Docker Selenium CI
-    types:
-      - completed
+  push:
+    branches:
+      - develop
 
 permissions:
   actions: read
@@ -20,12 +17,74 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Prepare reports directory
+      - name: Wait for Selenium CI and Docker Selenium CI
+        env:
+          GH_TOKEN: ${{ github.token }}
+          COMMIT_SHA: ${{ github.sha }}
         run: |
-          mkdir -p pages/selenium
-          mkdir -p pages/docker
+          echo "Waiting for CI workflows for commit:"
+          echo "$COMMIT_SHA"
 
-      - name: Find latest successful Selenium CI run
+          for i in {1..60}; do
+
+            echo ""
+            echo "===== CHECK ATTEMPT $i/60 ====="
+
+            SELENIUM_STATUS=$(gh run list \
+              --repo "${{ github.repository }}" \
+              --workflow "ci.yml" \
+              --branch develop \
+              --commit "$COMMIT_SHA" \
+              --limit 1 \
+              --json status,conclusion,databaseId \
+              --jq 'if length > 0 then .[0] else {} end')
+
+            DOCKER_STATUS=$(gh run list \
+              --repo "${{ github.repository }}" \
+              --workflow "docker-ci.yml" \
+              --branch develop \
+              --commit "$COMMIT_SHA" \
+              --limit 1 \
+              --json status,conclusion,databaseId \
+              --jq 'if length > 0 then .[0] else {} end')
+
+            echo "Selenium CI: $SELENIUM_STATUS"
+            echo "Docker CI:   $DOCKER_STATUS"
+
+            SELENIUM_STATE=$(echo "$SELENIUM_STATUS" | jq -r '.status // "not_found"')
+            DOCKER_STATE=$(echo "$DOCKER_STATUS" | jq -r '.status // "not_found"')
+
+            SELENIUM_CONCLUSION=$(echo "$SELENIUM_STATUS" | jq -r '.conclusion // "null"')
+            DOCKER_CONCLUSION=$(echo "$DOCKER_STATUS" | jq -r '.conclusion // "null"')
+
+            if [ "$SELENIUM_STATE" = "completed" ] && \
+               [ "$DOCKER_STATE" = "completed" ]; then
+
+              echo ""
+              echo "===== BOTH WORKFLOWS COMPLETED ====="
+
+              if [ "$SELENIUM_CONCLUSION" != "success" ]; then
+                echo "Selenium CI conclusion: $SELENIUM_CONCLUSION"
+                exit 1
+              fi
+
+              if [ "$DOCKER_CONCLUSION" != "success" ]; then
+                echo "Docker Selenium CI conclusion: $DOCKER_CONCLUSION"
+                exit 1
+              fi
+
+              echo "Both workflows completed successfully!"
+              exit 0
+            fi
+
+            echo "Workflows are still running..."
+            sleep 10
+          done
+
+          echo "Timeout: CI workflows did not finish within 10 minutes."
+          exit 1
+
+      - name: Find Selenium CI run
         id: selenium-run
         env:
           GH_TOKEN: ${{ github.token }}
@@ -34,6 +93,7 @@ jobs:
             --repo "${{ github.repository }}" \
             --workflow "ci.yml" \
             --branch develop \
+            --commit "${{ github.sha }}" \
             --status success \
             --limit 1 \
             --json databaseId \
@@ -48,7 +108,7 @@ jobs:
 
           echo "run_id=$RUN_ID" >> "$GITHUB_OUTPUT"
 
-      - name: Find latest successful Docker Selenium CI run
+      - name: Find Docker Selenium CI run
         id: docker-run
         env:
           GH_TOKEN: ${{ github.token }}
@@ -57,6 +117,7 @@ jobs:
             --repo "${{ github.repository }}" \
             --workflow "docker-ci.yml" \
             --branch develop \
+            --commit "${{ github.sha }}" \
             --status success \
             --limit 1 \
             --json databaseId \
@@ -70,6 +131,11 @@ jobs:
           fi
 
           echo "run_id=$RUN_ID" >> "$GITHUB_OUTPUT"
+
+      - name: Prepare reports directories
+        run: |
+          mkdir -p pages/selenium
+          mkdir -p pages/docker
 
       - name: Download Selenium Allure report
         env:
@@ -91,13 +157,110 @@ jobs:
             --name docker-allure-report \
             --dir pages/docker
 
-      - name: Show Pages structure
+      - name: Verify Selenium report
         run: |
           echo "===== SELENIUM REPORT ====="
           find pages/selenium -maxdepth 2 -type f | head -50
 
+          test -f pages/selenium/index.html
+
+      - name: Verify Docker report
+        run: |
           echo "===== DOCKER REPORT ====="
           find pages/docker -maxdepth 2 -type f | head -50
+
+          test -f pages/docker/index.html
+
+      - name: Create report navigation page
+        run: |
+          cat > pages/index.html <<'EOF'
+          <!DOCTYPE html>
+          <html lang="en">
+          <head>
+            <meta charset="UTF-8">
+            <meta name="viewport" content="width=device-width, initial-scale=1.0">
+            <title>AutoTests — Allure Reports</title>
+            <style>
+              body {
+                font-family: Arial, sans-serif;
+                max-width: 900px;
+                margin: 60px auto;
+                padding: 0 20px;
+              }
+
+              h1 {
+                margin-bottom: 10px;
+              }
+
+              .subtitle {
+                color: #666;
+                margin-bottom: 40px;
+              }
+
+              .reports {
+                display: flex;
+                gap: 20px;
+                flex-wrap: wrap;
+              }
+
+              a {
+                display: block;
+                padding: 25px;
+                border: 1px solid #ddd;
+                border-radius: 10px;
+                text-decoration: none;
+                color: #222;
+                min-width: 250px;
+              }
+
+              a:hover {
+                border-color: #888;
+              }
+
+              .title {
+                font-size: 20px;
+                font-weight: bold;
+                margin-bottom: 10px;
+              }
+
+              .description {
+                color: #666;
+              }
+            </style>
+          </head>
+
+          <body>
+            <h1>AutoTests — Allure Reports</h1>
+
+            <div class="subtitle">
+              Automated test reports
+            </div>
+
+            <div class="reports">
+
+              <a href="./selenium/">
+                <div class="title">Selenium CI</div>
+                <div class="description">
+                  Tests executed directly on GitHub Actions.
+                </div>
+              </a>
+
+              <a href="./docker/">
+                <div class="title">Docker Selenium CI</div>
+                <div class="description">
+                  Tests executed inside Docker with Selenium Standalone Chrome.
+                </div>
+              </a>
+
+            </div>
+          </body>
+          </html>
+          EOF
+
+      - name: Show final Pages structure
+        run: |
+          echo "===== FINAL PAGES STRUCTURE ====="
+          find pages -maxdepth 2 -type f | sort | head -100
 
       - name: Setup Pages
         uses: actions/configure-pages@v5
