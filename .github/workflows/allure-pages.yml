@@ -5,6 +5,11 @@ on:
     branches:
       - develop
 
+  schedule:
+    - cron: '*/5 * * * *'
+
+  workflow_dispatch:
+
 permissions:
   actions: read
   contents: read
@@ -17,74 +22,7 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Wait for Selenium CI and Docker Selenium CI
-        env:
-          GH_TOKEN: ${{ github.token }}
-          COMMIT_SHA: ${{ github.sha }}
-        run: |
-          echo "Waiting for CI workflows for commit:"
-          echo "$COMMIT_SHA"
-
-          for i in {1..60}; do
-
-            echo ""
-            echo "===== CHECK ATTEMPT $i/60 ====="
-
-            SELENIUM_STATUS=$(gh run list \
-              --repo "${{ github.repository }}" \
-              --workflow "ci.yml" \
-              --branch develop \
-              --commit "$COMMIT_SHA" \
-              --limit 1 \
-              --json status,conclusion,databaseId \
-              --jq 'if length > 0 then .[0] else {} end')
-
-            DOCKER_STATUS=$(gh run list \
-              --repo "${{ github.repository }}" \
-              --workflow "docker-ci.yml" \
-              --branch develop \
-              --commit "$COMMIT_SHA" \
-              --limit 1 \
-              --json status,conclusion,databaseId \
-              --jq 'if length > 0 then .[0] else {} end')
-
-            echo "Selenium CI: $SELENIUM_STATUS"
-            echo "Docker CI:   $DOCKER_STATUS"
-
-            SELENIUM_STATE=$(echo "$SELENIUM_STATUS" | jq -r '.status // "not_found"')
-            DOCKER_STATE=$(echo "$DOCKER_STATUS" | jq -r '.status // "not_found"')
-
-            SELENIUM_CONCLUSION=$(echo "$SELENIUM_STATUS" | jq -r '.conclusion // "null"')
-            DOCKER_CONCLUSION=$(echo "$DOCKER_STATUS" | jq -r '.conclusion // "null"')
-
-            if [ "$SELENIUM_STATE" = "completed" ] && \
-               [ "$DOCKER_STATE" = "completed" ]; then
-
-              echo ""
-              echo "===== BOTH WORKFLOWS COMPLETED ====="
-
-              if [ "$SELENIUM_CONCLUSION" != "success" ]; then
-                echo "Selenium CI conclusion: $SELENIUM_CONCLUSION"
-                exit 1
-              fi
-
-              if [ "$DOCKER_CONCLUSION" != "success" ]; then
-                echo "Docker Selenium CI conclusion: $DOCKER_CONCLUSION"
-                exit 1
-              fi
-
-              echo "Both workflows completed successfully!"
-              exit 0
-            fi
-
-            echo "Workflows are still running..."
-            sleep 10
-          done
-
-          echo "Timeout: CI workflows did not finish within 10 minutes."
-          exit 1
-
-      - name: Find Selenium CI run
+      - name: Find latest successful Selenium CI run
         id: selenium-run
         env:
           GH_TOKEN: ${{ github.token }}
@@ -93,13 +31,12 @@ jobs:
             --repo "${{ github.repository }}" \
             --workflow "ci.yml" \
             --branch develop \
-            --commit "${{ github.sha }}" \
             --status success \
             --limit 1 \
-            --json databaseId \
+            --json databaseId,headSha,createdAt \
             --jq '.[0].databaseId')
 
-          echo "Selenium CI run: $RUN_ID"
+          echo "Latest Selenium CI run: $RUN_ID"
 
           if [ -z "$RUN_ID" ]; then
             echo "Selenium CI successful run not found"
@@ -108,7 +45,7 @@ jobs:
 
           echo "run_id=$RUN_ID" >> "$GITHUB_OUTPUT"
 
-      - name: Find Docker Selenium CI run
+      - name: Find latest successful Docker Selenium CI run
         id: docker-run
         env:
           GH_TOKEN: ${{ github.token }}
@@ -117,13 +54,12 @@ jobs:
             --repo "${{ github.repository }}" \
             --workflow "docker-ci.yml" \
             --branch develop \
-            --commit "${{ github.sha }}" \
             --status success \
             --limit 1 \
-            --json databaseId \
+            --json databaseId,headSha,createdAt \
             --jq '.[0].databaseId')
 
-          echo "Docker Selenium CI run: $RUN_ID"
+          echo "Latest Docker Selenium CI run: $RUN_ID"
 
           if [ -z "$RUN_ID" ]; then
             echo "Docker Selenium CI successful run not found"
@@ -131,6 +67,16 @@ jobs:
           fi
 
           echo "run_id=$RUN_ID" >> "$GITHUB_OUTPUT"
+
+      - name: Show selected CI runs
+        run: |
+          echo "========================================"
+          echo "Selected Selenium CI run:"
+          echo "${{ steps.selenium-run.outputs.run_id }}"
+          echo ""
+          echo "Selected Docker Selenium CI run:"
+          echo "${{ steps.docker-run.outputs.run_id }}"
+          echo "========================================"
 
       - name: Prepare reports directories
         run: |
@@ -141,6 +87,8 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
+          echo "Downloading Selenium Allure report..."
+
           gh run download \
             "${{ steps.selenium-run.outputs.run_id }}" \
             --repo "${{ github.repository }}" \
@@ -151,6 +99,8 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
+          echo "Downloading Docker Allure report..."
+
           gh run download \
             "${{ steps.docker-run.outputs.run_id }}" \
             --repo "${{ github.repository }}" \
@@ -160,18 +110,26 @@ jobs:
       - name: Verify Selenium report
         run: |
           echo "===== SELENIUM REPORT ====="
+
           find pages/selenium -maxdepth 2 -type f | head -50
 
-          test -f pages/selenium/index.html
+          if [ ! -f pages/selenium/index.html ]; then
+            echo "Selenium Allure index.html not found"
+            exit 1
+          fi
 
       - name: Verify Docker report
         run: |
           echo "===== DOCKER REPORT ====="
+
           find pages/docker -maxdepth 2 -type f | head -50
 
-          test -f pages/docker/index.html
+          if [ ! -f pages/docker/index.html ]; then
+            echo "Docker Allure index.html not found"
+            exit 1
+          fi
 
-      - name: Create report navigation page
+      - name: Create main Allure page
         run: |
           cat > pages/index.html <<'EOF'
           <!DOCTYPE html>
@@ -179,87 +137,156 @@ jobs:
           <head>
             <meta charset="UTF-8">
             <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
             <title>AutoTests — Allure Reports</title>
+
             <style>
+              * {
+                box-sizing: border-box;
+              }
+
               body {
-                font-family: Arial, sans-serif;
+                margin: 0;
+                font-family:
+                  -apple-system,
+                  BlinkMacSystemFont,
+                  "Segoe UI",
+                  Roboto,
+                  Arial,
+                  sans-serif;
+
+                background: #f6f8fa;
+                color: #24292f;
+              }
+
+              .container {
                 max-width: 900px;
-                margin: 60px auto;
-                padding: 0 20px;
+                margin: 0 auto;
+                padding: 70px 24px;
               }
 
               h1 {
-                margin-bottom: 10px;
+                margin: 0 0 10px;
+                font-size: 36px;
               }
 
               .subtitle {
-                color: #666;
-                margin-bottom: 40px;
+                margin-bottom: 45px;
+                color: #57606a;
+                font-size: 18px;
               }
 
               .reports {
-                display: flex;
-                gap: 20px;
-                flex-wrap: wrap;
+                display: grid;
+                grid-template-columns:
+                  repeat(auto-fit, minmax(280px, 1fr));
+
+                gap: 24px;
               }
 
-              a {
+              .report {
                 display: block;
-                padding: 25px;
-                border: 1px solid #ddd;
-                border-radius: 10px;
+                padding: 30px;
+
+                background: white;
+
+                border: 1px solid #d0d7de;
+                border-radius: 12px;
+
                 text-decoration: none;
-                color: #222;
-                min-width: 250px;
+                color: inherit;
+
+                transition:
+                  transform 0.15s ease,
+                  box-shadow 0.15s ease;
               }
 
-              a:hover {
-                border-color: #888;
+              .report:hover {
+                transform: translateY(-3px);
+
+                box-shadow:
+                  0 8px 24px rgba(140, 149, 159, 0.2);
               }
 
-              .title {
-                font-size: 20px;
-                font-weight: bold;
-                margin-bottom: 10px;
+              .report-title {
+                margin-bottom: 12px;
+
+                font-size: 22px;
+                font-weight: 600;
               }
 
-              .description {
-                color: #666;
+              .report-description {
+                color: #57606a;
+                line-height: 1.5;
+              }
+
+              .footer {
+                margin-top: 50px;
+
+                color: #8c959f;
+                font-size: 14px;
               }
             </style>
           </head>
 
           <body>
-            <h1>AutoTests — Allure Reports</h1>
 
-            <div class="subtitle">
-              Automated test reports
-            </div>
+            <main class="container">
 
-            <div class="reports">
+              <h1>AutoTests</h1>
 
-              <a href="./selenium/">
-                <div class="title">Selenium CI</div>
-                <div class="description">
-                  Tests executed directly on GitHub Actions.
-                </div>
-              </a>
+              <div class="subtitle">
+                Allure test reports
+              </div>
 
-              <a href="./docker/">
-                <div class="title">Docker Selenium CI</div>
-                <div class="description">
-                  Tests executed inside Docker with Selenium Standalone Chrome.
-                </div>
-              </a>
+              <div class="reports">
 
-            </div>
+                <a
+                  class="report"
+                  href="./selenium/"
+                >
+                  <div class="report-title">
+                    Selenium CI
+                  </div>
+
+                  <div class="report-description">
+                    Automated tests executed directly
+                    on GitHub Actions.
+                  </div>
+                </a>
+
+                <a
+                  class="report"
+                  href="./docker/"
+                >
+                  <div class="report-title">
+                    Docker Selenium CI
+                  </div>
+
+                  <div class="report-description">
+                    Automated tests executed inside Docker
+                    with Selenium Standalone Chrome.
+                  </div>
+                </a>
+
+              </div>
+
+              <div class="footer">
+                Generated automatically by GitHub Actions.
+              </div>
+
+            </main>
+
           </body>
           </html>
           EOF
 
       - name: Show final Pages structure
         run: |
-          echo "===== FINAL PAGES STRUCTURE ====="
+          echo "========================================"
+          echo "FINAL GITHUB PAGES STRUCTURE"
+          echo "========================================"
+
           find pages -maxdepth 2 -type f | sort | head -100
 
       - name: Setup Pages
