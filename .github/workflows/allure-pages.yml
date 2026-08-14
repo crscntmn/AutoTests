@@ -1,7 +1,9 @@
 name: Allure Pages
 
 on:
-  workflow_dispatch:
+  push:
+    branches:
+      - develop
 
 permissions:
   actions: read
