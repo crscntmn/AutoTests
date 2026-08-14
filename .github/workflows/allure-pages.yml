@@ -10,101 +10,89 @@ permissions:
   id-token: write
 
 jobs:
-  publish:
-    name: Publish Allure Reports
+  publish-allure:
+    name: Publish Selenium and Docker Allure Reports
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v5
+      - name: Prepare reports directory
+        run: |
+          mkdir -p pages/selenium
+          mkdir -p pages/docker
+
+      - name: Find latest successful Selenium CI run
+        id: selenium-run
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          RUN_ID=$(gh run list \
+            --repo "${{ github.repository }}" \
+            --workflow "selenium-ci.yml" \
+            --branch develop \
+            --status success \
+            --limit 1 \
+            --json databaseId \
+            --jq '.[0].databaseId')
+
+          echo "Selenium CI run: $RUN_ID"
+
+          if [ -z "$RUN_ID" ]; then
+            echo "Selenium CI successful run not found"
+            exit 1
+          fi
+
+          echo "run_id=$RUN_ID" >> "$GITHUB_OUTPUT"
+
+      - name: Find latest successful Docker Selenium CI run
+        id: docker-run
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          RUN_ID=$(gh run list \
+            --repo "${{ github.repository }}" \
+            --workflow "docker-ci.yml" \
+            --branch develop \
+            --status success \
+            --limit 1 \
+            --json databaseId \
+            --jq '.[0].databaseId')
+
+          echo "Docker Selenium CI run: $RUN_ID"
+
+          if [ -z "$RUN_ID" ]; then
+            echo "Docker Selenium CI successful run not found"
+            exit 1
+          fi
+
+          echo "run_id=$RUN_ID" >> "$GITHUB_OUTPUT"
 
       - name: Download Selenium Allure report
-        uses: dawidd6/action-download-artifact@v11
-        with:
-          workflow: selenium-ci.yml
-          workflow_conclusion: success
-          name: selenium-allure-report
-          path: reports/selenium
-          search_artifacts: true
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh run download \
+            "${{ steps.selenium-run.outputs.run_id }}" \
+            --repo "${{ github.repository }}" \
+            --name selenium-allure-report \
+            --dir pages/selenium
 
       - name: Download Docker Allure report
-        uses: dawidd6/action-download-artifact@v11
-        with:
-          workflow: docker-ci.yml
-          workflow_conclusion: success
-          name: docker-allure-report
-          path: reports/docker
-          search_artifacts: true
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh run download \
+            "${{ steps.docker-run.outputs.run_id }}" \
+            --repo "${{ github.repository }}" \
+            --name docker-allure-report \
+            --dir pages/docker
 
-      - name: Show downloaded reports
+      - name: Show Pages structure
         run: |
           echo "===== SELENIUM REPORT ====="
-          find reports/selenium -maxdepth 2 -type f | head -50
+          find pages/selenium -maxdepth 2 -type f | head -50
 
           echo "===== DOCKER REPORT ====="
-          find reports/docker -maxdepth 2 -type f | head -50
-
-      - name: Create landing page
-        run: |
-          cat > reports/index.html <<'EOF'
-          <!DOCTYPE html>
-          <html lang="en">
-          <head>
-            <meta charset="UTF-8">
-            <title>AutoTests Allure Reports</title>
-            <style>
-              body {
-                font-family: Arial, sans-serif;
-                max-width: 800px;
-                margin: 80px auto;
-                text-align: center;
-              }
-
-              h1 {
-                margin-bottom: 40px;
-              }
-
-              a {
-                display: block;
-                margin: 20px;
-                padding: 20px;
-                background: #f3f3f3;
-                border-radius: 10px;
-                text-decoration: none;
-                color: #222;
-                font-size: 20px;
-              }
-
-              a:hover {
-                background: #e5e5e5;
-              }
-            </style>
-          </head>
-
-          <body>
-            <h1>AutoTests Allure Reports</h1>
-
-            <a href="./selenium/">
-              Selenium CI — Allure Report
-            </a>
-
-            <a href="./docker/">
-              Docker Selenium CI — Allure Report
-            </a>
-          </body>
-          </html>
-          EOF
-
-      - name: Prepare report directories
-        run: |
-          mkdir -p reports/selenium
-          mkdir -p reports/docker
-
-          echo "Selenium files:"
-          find reports/selenium -type f | head
-
-          echo "Docker files:"
-          find reports/docker -type f | head
+          find pages/docker -maxdepth 2 -type f | head -50
 
       - name: Setup Pages
         uses: actions/configure-pages@v5
@@ -112,7 +100,7 @@ jobs:
       - name: Upload Pages artifact
         uses: actions/upload-pages-artifact@v4
         with:
-          path: reports
+          path: pages
 
       - name: Deploy to GitHub Pages
         id: deployment
