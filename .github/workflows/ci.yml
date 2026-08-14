@@ -27,8 +27,7 @@ on:
 
 permissions:
   contents: read
-  pages: write
-  id-token: write
+  actions: write
 
 jobs:
   test:
@@ -104,15 +103,41 @@ jobs:
 
       - name: Install Allure CLI
         run: |
-          curl -Lo allure.tgz https://github.com/allure-framework/allure2/releases/download/2.34.1/allure-2.34.1.tgz
+          curl -Lo allure.tgz \
+            https://github.com/allure-framework/allure2/releases/download/2.34.1/allure-2.34.1.tgz
+
           tar -xzf allure.tgz
 
       - name: Generate Selenium Allure Report
         run: |
-          ./allure-2.34.1/bin/allure generate allure-results --clean -o selenium-allure-report
+          ./allure-2.34.1/bin/allure generate \
+            allure-results \
+            --clean \
+            -o selenium-allure-report
+
+      - name: Verify Selenium Allure Report
+        run: |
+          test -f selenium-allure-report/index.html
 
       - name: Upload Selenium Allure Report
         uses: actions/upload-artifact@v6
         with:
           name: selenium-allure-report
           path: selenium-allure-report/
+          if-no-files-found: error
+
+  publish-selenium-allure:
+    name: Publish Selenium Allure
+    runs-on: ubuntu-latest
+    needs: selenium-allure-report
+    if: always() && needs.selenium-allure-report.result == 'success'
+
+    steps:
+      - name: Trigger Allure Pages
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh workflow run allure-pages.yml \
+            --repo "${{ github.repository }}" \
+            -f report=selenium \
+            -f run_id="${{ github.run_id }}"

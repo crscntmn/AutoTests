@@ -1,135 +1,108 @@
 name: Allure Pages
 
 on:
-  push:
-    branches:
-      - develop
-
-  schedule:
-    - cron: '*/5 * * * *'
-
   workflow_dispatch:
+    inputs:
+      report:
+        description: Report to publish
+        required: true
+        type: choice
+        options:
+          - selenium
+          - docker
+
+      run_id:
+        description: CI workflow run ID
+        required: true
+        type: string
 
 permissions:
   actions: read
-  contents: read
+  contents: write
   pages: write
   id-token: write
 
 jobs:
-  publish-allure:
-    name: Publish Selenium and Docker Allure Reports
+  publish:
+    name: Publish Allure Reports
     runs-on: ubuntu-latest
 
     steps:
-      - name: Find latest successful Selenium CI run
-        id: selenium-run
-        env:
-          GH_TOKEN: ${{ github.token }}
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          ref: allure-pages-data
+
+      - name: Show current reports
         run: |
-          RUN_ID=$(gh run list \
-            --repo "${{ github.repository }}" \
-            --workflow "ci.yml" \
-            --branch develop \
-            --status success \
-            --limit 1 \
-            --json databaseId,headSha,createdAt \
-            --jq '.[0].databaseId')
+          echo "===== CURRENT REPORTS ====="
 
-          echo "Latest Selenium CI run: $RUN_ID"
-
-          if [ -z "$RUN_ID" ]; then
-            echo "Selenium CI successful run not found"
-            exit 1
+          if [ -d selenium ]; then
+            echo "Selenium report exists"
+          else
+            echo "Selenium report does not exist"
           fi
 
-          echo "run_id=$RUN_ID" >> "$GITHUB_OUTPUT"
-
-      - name: Find latest successful Docker Selenium CI run
-        id: docker-run
-        env:
-          GH_TOKEN: ${{ github.token }}
-        run: |
-          RUN_ID=$(gh run list \
-            --repo "${{ github.repository }}" \
-            --workflow "docker-ci.yml" \
-            --branch develop \
-            --status success \
-            --limit 1 \
-            --json databaseId,headSha,createdAt \
-            --jq '.[0].databaseId')
-
-          echo "Latest Docker Selenium CI run: $RUN_ID"
-
-          if [ -z "$RUN_ID" ]; then
-            echo "Docker Selenium CI successful run not found"
-            exit 1
+          if [ -d docker ]; then
+            echo "Docker report exists"
+          else
+            echo "Docker report does not exist"
           fi
 
-          echo "run_id=$RUN_ID" >> "$GITHUB_OUTPUT"
-
-      - name: Show selected CI runs
+      - name: Prepare report directory
         run: |
-          echo "========================================"
-          echo "Selected Selenium CI run:"
-          echo "${{ steps.selenium-run.outputs.run_id }}"
-          echo ""
-          echo "Selected Docker Selenium CI run:"
-          echo "${{ steps.docker-run.outputs.run_id }}"
-          echo "========================================"
+          mkdir -p selenium
+          mkdir -p docker
 
-      - name: Prepare reports directories
-        run: |
-          mkdir -p pages/selenium
-          mkdir -p pages/docker
-
-      - name: Download Selenium Allure report
+      - name: Download Selenium report
+        if: inputs.report == 'selenium'
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          echo "Downloading Selenium Allure report..."
+          rm -rf selenium/*
 
           gh run download \
-            "${{ steps.selenium-run.outputs.run_id }}" \
+            "${{ inputs.run_id }}" \
             --repo "${{ github.repository }}" \
             --name selenium-allure-report \
-            --dir pages/selenium
+            --dir selenium
 
-      - name: Download Docker Allure report
+      - name: Download Docker report
+        if: inputs.report == 'docker'
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          echo "Downloading Docker Allure report..."
+          rm -rf docker/*
 
           gh run download \
-            "${{ steps.docker-run.outputs.run_id }}" \
+            "${{ inputs.run_id }}" \
             --repo "${{ github.repository }}" \
             --name docker-allure-report \
-            --dir pages/docker
+            --dir docker
 
       - name: Verify Selenium report
         run: |
-          echo "===== SELENIUM REPORT ====="
-
-          find pages/selenium -maxdepth 2 -type f | head -50
-
-          if [ ! -f pages/selenium/index.html ]; then
-            echo "Selenium Allure index.html not found"
+          if [ ! -f selenium/index.html ]; then
+            echo "Selenium report is missing"
             exit 1
           fi
 
       - name: Verify Docker report
         run: |
-          echo "===== DOCKER REPORT ====="
-
-          find pages/docker -maxdepth 2 -type f | head -50
-
-          if [ ! -f pages/docker/index.html ]; then
-            echo "Docker Allure index.html not found"
+          if [ ! -f docker/index.html ]; then
+            echo "Docker report is missing"
             exit 1
           fi
 
-      - name: Create main Allure page
+      - name: Create Pages directory
+        run: |
+          mkdir -p pages/selenium
+          mkdir -p pages/docker
+
+          cp -r selenium/. pages/selenium/
+          cp -r docker/. pages/docker/
+
+      - name: Create main index.html
         run: |
           cat > pages/index.html <<'EOF'
           <!DOCTYPE html>
@@ -154,7 +127,6 @@ jobs:
                   Roboto,
                   Arial,
                   sans-serif;
-
                 background: #f6f8fa;
                 color: #24292f;
               }
@@ -180,22 +152,17 @@ jobs:
                 display: grid;
                 grid-template-columns:
                   repeat(auto-fit, minmax(280px, 1fr));
-
                 gap: 24px;
               }
 
               .report {
                 display: block;
                 padding: 30px;
-
                 background: white;
-
                 border: 1px solid #d0d7de;
                 border-radius: 12px;
-
                 text-decoration: none;
                 color: inherit;
-
                 transition:
                   transform 0.15s ease,
                   box-shadow 0.15s ease;
@@ -203,14 +170,12 @@ jobs:
 
               .report:hover {
                 transform: translateY(-3px);
-
                 box-shadow:
                   0 8px 24px rgba(140, 149, 159, 0.2);
               }
 
               .report-title {
                 margin-bottom: 12px;
-
                 font-size: 22px;
                 font-weight: 600;
               }
@@ -222,7 +187,6 @@ jobs:
 
               .footer {
                 margin-top: 50px;
-
                 color: #8c959f;
                 font-size: 14px;
               }
@@ -241,31 +205,24 @@ jobs:
 
               <div class="reports">
 
-                <a
-                  class="report"
-                  href="./selenium/"
-                >
+                <a class="report" href="./selenium/">
                   <div class="report-title">
                     Selenium CI
                   </div>
 
                   <div class="report-description">
-                    Automated tests executed directly
-                    on GitHub Actions.
+                    Tests executed directly on GitHub Actions.
                   </div>
                 </a>
 
-                <a
-                  class="report"
-                  href="./docker/"
-                >
+                <a class="report" href="./docker/">
                   <div class="report-title">
                     Docker Selenium CI
                   </div>
 
                   <div class="report-description">
-                    Automated tests executed inside Docker
-                    with Selenium Standalone Chrome.
+                    Tests executed inside Docker with
+                    Selenium Standalone Chrome.
                   </div>
                 </a>
 
@@ -281,13 +238,34 @@ jobs:
           </html>
           EOF
 
-      - name: Show final Pages structure
+      - name: Show Pages structure
         run: |
-          echo "========================================"
-          echo "FINAL GITHUB PAGES STRUCTURE"
-          echo "========================================"
-
+          echo "===== PAGES STRUCTURE ====="
           find pages -maxdepth 2 -type f | sort | head -100
+
+      - name: Configure Git
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+
+      - name: Copy reports back to data branch
+        run: |
+          rm -rf selenium
+          rm -rf docker
+
+          cp -r pages/selenium selenium
+          cp -r pages/docker docker
+
+      - name: Commit updated reports
+        run: |
+          git add selenium docker
+
+          if git diff --cached --quiet; then
+            echo "No report changes"
+          else
+            git commit -m "Update ${{ inputs.report }} Allure report"
+            git push origin allure-pages-data
+          fi
 
       - name: Setup Pages
         uses: actions/configure-pages@v5
