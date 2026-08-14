@@ -22,7 +22,7 @@ jobs:
       - name: Checkout reports branch
         uses: actions/checkout@v4
         with:
-          ref: allure-pages-data
+          ref: develop
           fetch-depth: 0
 
       # ============================================================
@@ -398,7 +398,7 @@ jobs:
             echo "No report changes."
           else
             git commit -m "Update Allure reports for ${{ github.sha }}"
-            git push origin allure-pages-data
+            git push origin develop
           fi
 
       # ============================================================
