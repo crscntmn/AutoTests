@@ -29,7 +29,7 @@ jobs:
         run: |
           RUN_ID=$(gh run list \
             --repo "${{ github.repository }}" \
-            --workflow "selenium-ci.yml" \
+            --workflow "ci.yml" \
             --branch develop \
             --status success \
             --limit 1 \
