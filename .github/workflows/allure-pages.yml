@@ -1,9 +1,12 @@
 name: Allure Pages
 
 on:
-  push:
-    branches:
-      - develop
+  workflow_run:
+    workflows:
+      - Selenium CI
+      - Docker Selenium CI
+    types:
+      - completed
 
 permissions:
   actions: read
