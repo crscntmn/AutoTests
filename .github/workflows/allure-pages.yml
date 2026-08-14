@@ -1,20 +1,11 @@
 name: Allure Pages
 
 on:
-  workflow_dispatch:
-    inputs:
-      report:
-        description: Report to publish
-        required: true
-        type: choice
-        options:
-          - selenium
-          - docker
+  push:
+    branches:
+      - develop
 
-      run_id:
-        description: CI workflow run ID
-        required: true
-        type: string
+  workflow_dispatch:
 
 permissions:
   actions: read
@@ -24,83 +15,209 @@ permissions:
 
 jobs:
   publish:
-    name: Publish Allure Reports
+    name: Publish Selenium and Docker Allure Reports
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout repository
+      - name: Checkout reports branch
         uses: actions/checkout@v4
         with:
           ref: allure-pages-data
+          fetch-depth: 0
 
-      - name: Show current reports
+      # ============================================================
+      # FIND SELENIUM CI RUN FOR CURRENT COMMIT
+      # ============================================================
+
+      - name: Wait for Selenium CI
+        id: selenium
+        env:
+          GH_TOKEN: ${{ github.token }}
+          CURRENT_SHA: ${{ github.sha }}
         run: |
-          echo "===== CURRENT REPORTS ====="
+          echo "Current commit: $CURRENT_SHA"
+          echo "Waiting for Selenium CI..."
 
-          if [ -d selenium ]; then
-            echo "Selenium report exists"
-          else
-            echo "Selenium report does not exist"
-          fi
+          for i in {1..60}; do
 
-          if [ -d docker ]; then
-            echo "Docker report exists"
-          else
-            echo "Docker report does not exist"
-          fi
+            RUN_INFO=$(gh run list \
+              --repo "${{ github.repository }}" \
+              --workflow "ci.yml" \
+              --branch develop \
+              --limit 20 \
+              --json databaseId,headSha,status,conclusion \
+              --jq ".[] | select(.headSha == \"$CURRENT_SHA\")" \
+              | head -1)
 
-      - name: Prepare report directory
+            if [ -n "$RUN_INFO" ]; then
+
+              RUN_ID=$(echo "$RUN_INFO" | jq -r '.databaseId')
+              STATUS=$(echo "$RUN_INFO" | jq -r '.status')
+              CONCLUSION=$(echo "$RUN_INFO" | jq -r '.conclusion')
+
+              echo "Selenium CI:"
+              echo "  Run ID: $RUN_ID"
+              echo "  Status: $STATUS"
+              echo "  Conclusion: $CONCLUSION"
+
+              if [ "$STATUS" = "completed" ]; then
+
+                if [ "$CONCLUSION" = "success" ]; then
+                  echo "Selenium CI completed successfully."
+                  echo "run_id=$RUN_ID" >> "$GITHUB_OUTPUT"
+                  break
+                else
+                  echo "Selenium CI failed."
+                  exit 1
+                fi
+
+              fi
+            else
+              echo "Selenium CI run for current SHA not found yet."
+            fi
+
+            if [ "$i" -eq 60 ]; then
+              echo "Selenium CI timeout."
+              exit 1
+            fi
+
+            echo "Waiting... attempt $i/60"
+            sleep 10
+          done
+
+      # ============================================================
+      # FIND DOCKER CI RUN FOR CURRENT COMMIT
+      # ============================================================
+
+      - name: Wait for Docker Selenium CI
+        id: docker
+        env:
+          GH_TOKEN: ${{ github.token }}
+          CURRENT_SHA: ${{ github.sha }}
+        run: |
+          echo "Current commit: $CURRENT_SHA"
+          echo "Waiting for Docker Selenium CI..."
+
+          for i in {1..60}; do
+
+            RUN_INFO=$(gh run list \
+              --repo "${{ github.repository }}" \
+              --workflow "docker-ci.yml" \
+              --branch develop \
+              --limit 20 \
+              --json databaseId,headSha,status,conclusion \
+              --jq ".[] | select(.headSha == \"$CURRENT_SHA\")" \
+              | head -1)
+
+            if [ -n "$RUN_INFO" ]; then
+
+              RUN_ID=$(echo "$RUN_INFO" | jq -r '.databaseId')
+              STATUS=$(echo "$RUN_INFO" | jq -r '.status')
+              CONCLUSION=$(echo "$RUN_INFO" | jq -r '.conclusion')
+
+              echo "Docker Selenium CI:"
+              echo "  Run ID: $RUN_ID"
+              echo "  Status: $STATUS"
+              echo "  Conclusion: $CONCLUSION"
+
+              if [ "$STATUS" = "completed" ]; then
+
+                if [ "$CONCLUSION" = "success" ]; then
+                  echo "Docker Selenium CI completed successfully."
+                  echo "run_id=$RUN_ID" >> "$GITHUB_OUTPUT"
+                  break
+                else
+                  echo "Docker Selenium CI failed."
+                  exit 1
+                fi
+
+              fi
+            else
+              echo "Docker Selenium CI run for current SHA not found yet."
+            fi
+
+            if [ "$i" -eq 60 ]; then
+              echo "Docker Selenium CI timeout."
+              exit 1
+            fi
+
+            echo "Waiting... attempt $i/60"
+            sleep 10
+          done
+
+      # ============================================================
+      # PREPARE REPORT DIRECTORIES
+      # ============================================================
+
+      - name: Prepare report directories
         run: |
           mkdir -p selenium
           mkdir -p docker
+          mkdir -p pages/selenium
+          mkdir -p pages/docker
 
-      - name: Download Selenium report
-        if: inputs.report == 'selenium'
+      # ============================================================
+      # DOWNLOAD SELENIUM REPORT
+      # ============================================================
+
+      - name: Download Selenium Allure report
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
           rm -rf selenium/*
 
           gh run download \
-            "${{ inputs.run_id }}" \
+            "${{ steps.selenium.outputs.run_id }}" \
             --repo "${{ github.repository }}" \
             --name selenium-allure-report \
             --dir selenium
 
-      - name: Download Docker report
-        if: inputs.report == 'docker'
+      # ============================================================
+      # DOWNLOAD DOCKER REPORT
+      # ============================================================
+
+      - name: Download Docker Allure report
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
           rm -rf docker/*
 
           gh run download \
-            "${{ inputs.run_id }}" \
+            "${{ steps.docker.outputs.run_id }}" \
             --repo "${{ github.repository }}" \
             --name docker-allure-report \
             --dir docker
 
+      # ============================================================
+      # VERIFY REPORTS
+      # ============================================================
+
       - name: Verify Selenium report
         run: |
-          if [ ! -f selenium/index.html ]; then
-            echo "Selenium report is missing"
-            exit 1
-          fi
+          echo "===== SELENIUM REPORT ====="
+          find selenium -maxdepth 2 -type f | head -30
+
+          test -f selenium/index.html
 
       - name: Verify Docker report
         run: |
-          if [ ! -f docker/index.html ]; then
-            echo "Docker report is missing"
-            exit 1
-          fi
+          echo "===== DOCKER REPORT ====="
+          find docker -maxdepth 2 -type f | head -30
 
-      - name: Create Pages directory
+          test -f docker/index.html
+
+      # ============================================================
+      # COPY REPORTS TO PAGES
+      # ============================================================
+
+      - name: Copy reports to Pages
         run: |
-          mkdir -p pages/selenium
-          mkdir -p pages/docker
-
           cp -r selenium/. pages/selenium/
           cp -r docker/. pages/docker/
+
+      # ============================================================
+      # MAIN PAGE
+      # ============================================================
 
       - name: Create main index.html
         run: |
@@ -238,17 +355,29 @@ jobs:
           </html>
           EOF
 
+      # ============================================================
+      # SHOW STRUCTURE
+      # ============================================================
+
       - name: Show Pages structure
         run: |
           echo "===== PAGES STRUCTURE ====="
+
           find pages -maxdepth 2 -type f | sort | head -100
 
-      - name: Configure Git
-        run: |
-          git config user.name "github-actions[bot]"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          echo ""
+          echo "===== SELENIUM INDEX ====="
+          ls -lh pages/selenium/index.html
 
-      - name: Copy reports back to data branch
+          echo ""
+          echo "===== DOCKER INDEX ====="
+          ls -lh pages/docker/index.html
+
+      # ============================================================
+      # UPDATE DATA BRANCH
+      # ============================================================
+
+      - name: Update reports on data branch
         run: |
           rm -rf selenium
           rm -rf docker
@@ -256,16 +385,25 @@ jobs:
           cp -r pages/selenium selenium
           cp -r pages/docker docker
 
-      - name: Commit updated reports
+      - name: Configure Git
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+
+      - name: Commit reports
         run: |
           git add selenium docker
 
           if git diff --cached --quiet; then
-            echo "No report changes"
+            echo "No report changes."
           else
-            git commit -m "Update ${{ inputs.report }} Allure report"
+            git commit -m "Update Allure reports for ${{ github.sha }}"
             git push origin allure-pages-data
           fi
+
+      # ============================================================
+      # DEPLOY GITHUB PAGES
+      # ============================================================
 
       - name: Setup Pages
         uses: actions/configure-pages@v5
