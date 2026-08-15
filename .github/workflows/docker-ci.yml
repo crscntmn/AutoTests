@@ -158,19 +158,8 @@ jobs:
           if-no-files-found: error
 
 
-  publish-docker-allure:
-    name: Publish Docker Allure
-    needs: docker-allure-report
-    if: always() && needs.docker-allure-report.result == 'success'
-
-    uses: ./.github/workflows/allure-pages.yml
-
-    with:
-      report: docker
-      run_id: ${{ github.run_id }}
-
-    permissions:
-      actions: read
-      contents: write
-      pages: write
-      id-token: write
+      - name: Publish Docker Allure
+        uses: ./.github/workflows/allure-pages.yml
+        with:
+          report: docker
+          run_id: ${{ github.run_id }}

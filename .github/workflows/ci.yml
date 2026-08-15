@@ -139,19 +139,8 @@ jobs:
           if-no-files-found: error
 
 
-  publish-selenium-allure:
-    name: Publish Selenium Allure
-    needs: selenium-allure-report
-    if: always() && needs.selenium-allure-report.result == 'success'
-
-    uses: ./.github/workflows/allure-pages.yml
-
-    with:
-      report: selenium
-      run_id: ${{ github.run_id }}
-
-    permissions:
-      actions: read
-      contents: write
-      pages: write
-      id-token: write
+      - name: Publish Selenium Allure
+        uses: ./.github/workflows/allure-pages.yml
+        with:
+          report: selenium
+          run_id: ${{ github.run_id }}
