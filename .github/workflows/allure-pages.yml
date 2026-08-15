@@ -23,17 +23,24 @@ concurrency:
 jobs:
   publish:
     name: Publish Allure Reports
-
     runs-on: ubuntu-latest
 
     if: github.event.workflow_run.conclusion == 'success'
 
     steps:
+      # ============================================================
+      # 1. Берём текущие опубликованные отчёты из отдельной ветки
+      # ============================================================
+
       - name: Checkout Allure data branch
         uses: actions/checkout@v4
         with:
-          ref: develop
+          ref: allure-pages-data
           fetch-depth: 0
+
+      # ============================================================
+      # 2. Информация о CI, который запустил этот workflow
+      # ============================================================
 
       - name: Show triggering workflow
         run: |
@@ -42,10 +49,19 @@ jobs:
           echo "Branch: ${{ github.event.workflow_run.head_branch }}"
           echo "Commit: ${{ github.event.workflow_run.head_sha }}"
 
+      # ============================================================
+      # 3. Подготавливаем директории
+      # ============================================================
+
       - name: Prepare report directories
         run: |
           mkdir -p selenium
           mkdir -p docker
+
+      # ============================================================
+      # 4. Если завершился Selenium CI —
+      #    скачиваем ЕГО конкретный Allure report
+      # ============================================================
 
       - name: Download Selenium Allure report
         if: github.event.workflow_run.name == 'Selenium CI'
@@ -56,6 +72,11 @@ jobs:
           run-id: ${{ github.event.workflow_run.id }}
           github-token: ${{ github.token }}
 
+      # ============================================================
+      # 5. Если завершился Docker CI —
+      #    скачиваем ЕГО конкретный Allure report
+      # ============================================================
+
       - name: Download Docker Allure report
         if: github.event.workflow_run.name == 'Docker Selenium CI'
         uses: actions/download-artifact@v6
@@ -64,6 +85,10 @@ jobs:
           path: docker
           run-id: ${{ github.event.workflow_run.id }}
           github-token: ${{ github.token }}
+
+      # ============================================================
+      # 6. Проверяем скачанный Selenium report
+      # ============================================================
 
       - name: Verify Selenium report
         if: github.event.workflow_run.name == 'Selenium CI'
@@ -74,6 +99,10 @@ jobs:
 
           test -f selenium/index.html
 
+      # ============================================================
+      # 7. Проверяем скачанный Docker report
+      # ============================================================
+
       - name: Verify Docker report
         if: github.event.workflow_run.name == 'Docker Selenium CI'
         run: |
@@ -83,24 +112,33 @@ jobs:
 
           test -f docker/index.html
 
-      - name: Show current stored reports
+      # ============================================================
+      # 8. Показываем, что уже хранится в data branch
+      # ============================================================
+
+      - name: Show stored reports
         run: |
           echo "===== STORED SELENIUM REPORT ====="
 
           if [ -f selenium/index.html ]; then
             echo "Selenium report exists."
           else
-            echo "Selenium report does not exist."
+            echo "Selenium report does not exist yet."
           fi
 
           echo ""
+
           echo "===== STORED DOCKER REPORT ====="
 
           if [ -f docker/index.html ]; then
             echo "Docker report exists."
           else
-            echo "Docker report does not exist."
+            echo "Docker report does not exist yet."
           fi
+
+      # ============================================================
+      # 9. Формируем Pages
+      # ============================================================
 
       - name: Prepare Pages directory
         run: |
@@ -109,8 +147,12 @@ jobs:
           mkdir -p pages/selenium
           mkdir -p pages/docker
 
-          cp -r selenium/. pages/selenium/
-          cp -r docker/. pages/docker/
+          cp -r selenium/. pages/selenium/ 2>/dev/null || true
+          cp -r docker/. pages/docker/ 2>/dev/null || true
+
+      # ============================================================
+      # 10. Главная страница
+      # ============================================================
 
       - name: Create main index.html
         run: |
@@ -120,6 +162,7 @@ jobs:
 
           <head>
             <meta charset="UTF-8">
+
             <meta
               name="viewport"
               content="width=device-width, initial-scale=1.0"
@@ -134,6 +177,7 @@ jobs:
 
               body {
                 margin: 0;
+
                 font-family:
                   -apple-system,
                   BlinkMacSystemFont,
@@ -165,6 +209,7 @@ jobs:
 
               .reports {
                 display: grid;
+
                 grid-template-columns:
                   repeat(auto-fit, minmax(280px, 1fr));
 
@@ -173,6 +218,7 @@ jobs:
 
               .report {
                 display: block;
+
                 padding: 30px;
 
                 background: white;
@@ -269,6 +315,10 @@ jobs:
           </html>
           EOF
 
+      # ============================================================
+      # 11. Проверяем структуру Pages
+      # ============================================================
+
       - name: Show Pages structure
         run: |
           echo "===== PAGES STRUCTURE ====="
@@ -278,18 +328,24 @@ jobs:
           echo ""
           echo "===== SELENIUM ====="
 
-          ls -lh pages/selenium/index.html
+          if [ -f pages/selenium/index.html ]; then
+            ls -lh pages/selenium/index.html
+          else
+            echo "Selenium report is not available."
+          fi
 
           echo ""
           echo "===== DOCKER ====="
 
-          ls -lh pages/docker/index.html
+          if [ -f pages/docker/index.html ]; then
+            ls -lh pages/docker/index.html
+          else
+            echo "Docker report is not available."
+          fi
 
-      - name: Configure Git
-        run: |
-          git config user.name "github-actions[bot]"
-          git config user.email \
-            "41898282+github-actions[bot]@users.noreply.github.com"
+      # ============================================================
+      # 12. Обновляем allure-pages-data
+      # ============================================================
 
       - name: Update Allure data branch
         run: |
@@ -299,10 +355,20 @@ jobs:
           mkdir -p selenium
           mkdir -p docker
 
-          cp -r pages/selenium/. selenium/
-          cp -r pages/docker/. docker/
+          cp -r pages/selenium/. selenium/ 2>/dev/null || true
+          cp -r pages/docker/. docker/ 2>/dev/null || true
 
-      - name: Commit updated reports
+      # ============================================================
+      # 13. Commit только в allure-pages-data
+      # ============================================================
+
+      - name: Configure Git
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email \
+            "41898282+github-actions[bot]@users.noreply.github.com"
+
+      - name: Commit reports
         run: |
           git add selenium docker
 
@@ -310,10 +376,14 @@ jobs:
             echo "No report changes."
           else
             git commit \
-              -m "Update Allure report from ${{ github.event.workflow_run.name }} #${{ github.event.workflow_run.id }}"
+              -m "Update ${{ github.event.workflow_run.name }} report #${{ github.event.workflow_run.id }}"
 
-            git push origin develop
+            git push origin allure-pages-data
           fi
+
+      # ============================================================
+      # 14. GitHub Pages
+      # ============================================================
 
       - name: Setup Pages
         uses: actions/configure-pages@v5
