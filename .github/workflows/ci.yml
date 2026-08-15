@@ -8,18 +8,118 @@ on:
         required: true
         type: string
 
-    outputs:
-      run_id:
-        description: Selenium CI workflow run ID
-        value: ${{ github.run_id }}
-
 permissions:
   contents: read
 
 jobs:
-  test:
-    name: Selenium tests
-    runs-on: ubuntu-latest
+
+  selenium-tests:
+
+    name: Selenium tests (${{ matrix.os-name }} / Java ${{ matrix.java }} / ${{ matrix.browser }})
+
+    runs-on: ${{ matrix.os }}
+
+    strategy:
+      fail-fast: false
+
+      matrix:
+        include:
+
+          # Ubuntu
+          - os: ubuntu-latest
+            os-name: ubuntu
+            java: 17
+            browser: chrome
+
+          - os: ubuntu-latest
+            os-name: ubuntu
+            java: 17
+            browser: firefox
+
+          - os: ubuntu-latest
+            os-name: ubuntu
+            java: 17
+            browser: edge
+
+          - os: ubuntu-latest
+            os-name: ubuntu
+            java: 21
+            browser: chrome
+
+          - os: ubuntu-latest
+            os-name: ubuntu
+            java: 21
+            browser: firefox
+
+          - os: ubuntu-latest
+            os-name: ubuntu
+            java: 21
+            browser: edge
+
+
+          # Windows
+          - os: windows-latest
+            os-name: windows
+            java: 17
+            browser: chrome
+
+          - os: windows-latest
+            os-name: windows
+            java: 17
+            browser: firefox
+
+          - os: windows-latest
+            os-name: windows
+            java: 17
+            browser: edge
+
+          - os: windows-latest
+            os-name: windows
+            java: 21
+            browser: chrome
+
+          - os: windows-latest
+            os-name: windows
+            java: 21
+            browser: firefox
+
+          - os: windows-latest
+            os-name: windows
+            java: 21
+            browser: edge
+
+
+          # macOS
+          - os: macos-latest
+            os-name: macos
+            java: 17
+            browser: chrome
+
+          - os: macos-latest
+            os-name: macos
+            java: 17
+            browser: firefox
+
+          - os: macos-latest
+            os-name: macos
+            java: 17
+            browser: edge
+
+          - os: macos-latest
+            os-name: macos
+            java: 21
+            browser: chrome
+
+          - os: macos-latest
+            os-name: macos
+            java: 21
+            browser: firefox
+
+          - os: macos-latest
+            os-name: macos
+            java: 21
+            browser: edge
+
 
     env:
       PASSWORD: ${{ secrets.PASSWORD }}
@@ -27,13 +127,12 @@ jobs:
       INVALIDATE_PASSWORD: ${{ secrets.INVALIDATE_PASSWORD }}
       WRONG_PASSWORD: ${{ secrets.WRONG_PASSWORD }}
 
-    strategy:
-      matrix:
-        java: [17, 21]
+      BROWSER: ${{ matrix.browser }}
 
     steps:
+
       - name: Checkout repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
 
       - name: Set up Java
         uses: actions/setup-java@v5
@@ -41,6 +140,16 @@ jobs:
           distribution: temurin
           java-version: ${{ matrix.java }}
           cache: maven
+
+      - name: Show environment
+        shell: bash
+        run: |
+          echo "OS: ${{ matrix.os-name }}"
+          echo "Java: ${{ matrix.java }}"
+          echo "Browser: ${{ matrix.browser }}"
+
+          java -version
+          mvn -version
 
       - name: Run all tests
         if: inputs.suite == 'all'
@@ -54,67 +163,57 @@ jobs:
         if: always()
         uses: actions/upload-artifact@v6
         with:
-          name: surefire-reports-java-${{ matrix.java }}
+          name: surefire-${{ matrix.os-name }}-java-${{ matrix.java }}-${{ matrix.browser }}
           path: target/surefire-reports/
           if-no-files-found: warn
 
-      - name: Upload Allure results
-        if: always()
-        uses: actions/upload-artifact@v6
-        with:
-          name: allure-results-java-${{ matrix.java }}
-          path: allure-results/
-          if-no-files-found: error
-
-  allure-report:
-    name: Generate Selenium Allure Report
-    runs-on: ubuntu-latest
-
-    needs: test
-    if: always() && needs.test.result != 'cancelled'
-
-    steps:
-      - name: Download Selenium Allure results
-        uses: actions/download-artifact@v6
-        with:
-          pattern: allure-results-java-*
-          path: allure-results
-          merge-multiple: true
-
-      - name: Show Allure results
-        run: |
-          echo "===== SELENIUM ALLURE RESULTS ====="
-          find allure-results -type f
-          echo ""
-          echo "Files: $(find allure-results -type f | wc -l)"
-
-      - name: Set up Java
-        uses: actions/setup-java@v5
-        with:
-          distribution: temurin
-          java-version: 21
-
       - name: Install Allure CLI
+        if: always()
+        shell: bash
         run: |
           curl -Lo allure.tgz \
             https://github.com/allure-framework/allure2/releases/download/2.34.1/allure-2.34.1.tgz
 
           tar -xzf allure.tgz
 
-      - name: Generate Selenium Allure Report
+      - name: Generate Allure report
+        if: always()
+        shell: bash
         run: |
-          ./allure-2.34.1/bin/allure generate \
-            allure-results \
-            --clean \
-            -o selenium-allure-report
+          if [ -d "allure-results" ] && [ "$(find allure-results -type f | wc -l)" -gt 0 ]; then
 
-      - name: Verify Selenium Allure Report
-        run: |
-          test -f selenium-allure-report/index.html
+            ./allure-2.34.1/bin/allure generate \
+              allure-results \
+              --clean \
+              -o "allure-report"
 
-      - name: Upload Selenium Allure Report
+            test -f "allure-report/index.html"
+
+          else
+
+            echo "No Allure results found."
+            mkdir -p allure-report
+
+            cat > allure-report/index.html <<'EOF'
+            <!DOCTYPE html>
+            <html>
+            <head>
+              <meta charset="UTF-8">
+              <title>Allure Report</title>
+            </head>
+            <body>
+              <h1>No Allure results</h1>
+              <p>No test results were produced for this configuration.</p>
+            </body>
+            </html>
+            EOF
+
+          fi
+
+      - name: Upload Allure report
+        if: always()
         uses: actions/upload-artifact@v6
         with:
-          name: selenium-allure-report
-          path: selenium-allure-report/
+          name: selenium-allure-${{ matrix.os-name }}-java-${{ matrix.java }}-${{ matrix.browser }}
+          path: allure-report/
           if-no-files-found: error

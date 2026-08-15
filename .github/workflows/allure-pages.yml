@@ -2,16 +2,6 @@ name: Allure Pages
 
 on:
   workflow_call:
-    inputs:
-      selenium_run_id:
-        description: Selenium CI workflow run ID
-        required: true
-        type: string
-
-      docker_run_id:
-        description: Docker Selenium CI workflow run ID
-        required: true
-        type: string
 
 permissions:
   actions: read
@@ -20,56 +10,411 @@ permissions:
   id-token: write
 
 jobs:
+
   publish:
+
     name: Publish Allure Reports
+
     runs-on: ubuntu-latest
 
     steps:
-      - name: Prepare directories
+
+      - name: Download Selenium Allure reports
+        uses: actions/download-artifact@v6
+        with:
+          pattern: selenium-allure-*
+          path: selenium-reports
+
+      - name: Download Docker Allure reports
+        uses: actions/download-artifact@v6
+        with:
+          pattern: docker-allure-*
+          path: docker-reports
+
+      - name: Show downloaded reports
         run: |
+          echo "===== SELENIUM REPORTS ====="
+          find selenium-reports -maxdepth 3 -type f | sort | head -200 || true
+
+          echo ""
+          echo "===== DOCKER REPORTS ====="
+          find docker-reports -maxdepth 3 -type f | sort | head -100 || true
+
+
+      - name: Prepare Pages directory
+        run: |
+          rm -rf pages
+
           mkdir -p pages/selenium
           mkdir -p pages/docker
 
-      - name: Download Selenium Allure report
-        uses: actions/download-artifact@v6
-        with:
-          name: selenium-allure-report
-          path: pages/selenium
-          run-id: ${{ inputs.selenium_run_id }}
-          github-token: ${{ github.token }}
 
-      - name: Download Docker Allure report
-        uses: actions/download-artifact@v6
-        with:
-          name: docker-allure-report
-          path: pages/docker
-          run-id: ${{ inputs.docker_run_id }}
-          github-token: ${{ github.token }}
-
-      - name: Verify reports
+      - name: Build Selenium report structure
+        shell: bash
         run: |
-          echo "===== SELENIUM ====="
-          test -f pages/selenium/index.html
 
-          echo "===== DOCKER ====="
-          test -f pages/docker/index.html
+          for dir in selenium-reports/selenium-allure-*; do
 
-      - name: Create main index.html
+            [ -d "$dir" ] || continue
+
+            NAME=$(basename "$dir")
+
+            # selenium-allure-ubuntu-java-17-chrome
+            CONFIG=${NAME#selenium-allure-}
+
+            OS=$(echo "$CONFIG" | cut -d'-' -f1)
+
+            JAVA=$(echo "$CONFIG" | sed -n 's/.*java-\([0-9]*\)-.*/\1/p')
+
+            BROWSER=$(echo "$CONFIG" | sed -n 's/.*java-[0-9]*-\(.*\)/\1/p')
+
+            TARGET="pages/selenium/$OS/java-$JAVA/$BROWSER"
+
+            mkdir -p "$TARGET"
+
+            cp -r "$dir"/. "$TARGET"/
+
+            echo "Selenium report:"
+            echo "  OS: $OS"
+            echo "  Java: $JAVA"
+            echo "  Browser: $BROWSER"
+            echo "  Path: $TARGET"
+
+          done
+
+
+      - name: Build Docker report structure
+        shell: bash
         run: |
-          cat > pages/index.html <<'EOF'
+
+          for dir in docker-reports/docker-allure-*; do
+
+            [ -d "$dir" ] || continue
+
+            NAME=$(basename "$dir")
+
+            # docker-allure-chrome
+            BROWSER=${NAME#docker-allure-}
+
+            TARGET="pages/docker/$BROWSER"
+
+            mkdir -p "$TARGET"
+
+            cp -r "$dir"/. "$TARGET"/
+
+            echo "Docker report:"
+            echo "  Browser: $BROWSER"
+            echo "  Path: $TARGET"
+
+          done
+
+
+      - name: Create Selenium index
+        shell: bash
+        run: |
+
+          cat > pages/selenium/index.html <<'EOF'
           <!DOCTYPE html>
           <html lang="en">
+
           <head>
             <meta charset="UTF-8">
             <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-            <title>AutoTests — Allure Reports</title>
+            <title>Selenium CI — Allure Reports</title>
 
             <style>
-              * {
-                box-sizing: border-box;
+              body {
+                margin: 0;
+                font-family:
+                  -apple-system,
+                  BlinkMacSystemFont,
+                  "Segoe UI",
+                  Roboto,
+                  Arial,
+                  sans-serif;
+                background: #f6f8fa;
+                color: #24292f;
               }
 
+              .container {
+                max-width: 1000px;
+                margin: auto;
+                padding: 60px 24px;
+              }
+
+              h1 {
+                margin-bottom: 10px;
+              }
+
+              .subtitle {
+                color: #57606a;
+                margin-bottom: 35px;
+              }
+
+              h2 {
+                margin-top: 35px;
+              }
+
+              .grid {
+                display: grid;
+                grid-template-columns:
+                  repeat(auto-fit, minmax(220px, 1fr));
+                gap: 16px;
+              }
+
+              a {
+                display: block;
+                padding: 20px;
+                background: white;
+                border: 1px solid #d0d7de;
+                border-radius: 10px;
+                text-decoration: none;
+                color: inherit;
+              }
+
+              a:hover {
+                box-shadow: 0 5px 18px
+                  rgba(140, 149, 159, 0.2);
+              }
+
+              .title {
+                font-size: 18px;
+                font-weight: 600;
+                margin-bottom: 8px;
+              }
+
+              .description {
+                color: #57606a;
+              }
+
+              .back {
+                display: inline-block;
+                margin-bottom: 30px;
+                color: #0969da;
+              }
+            </style>
+          </head>
+
+          <body>
+
+          <main class="container">
+
+            <a class="back" href="../">
+              ← Back to Allure Reports
+            </a>
+
+            <h1>Selenium CI</h1>
+
+            <div class="subtitle">
+              OS × Java × Browser matrix
+            </div>
+
+            <h2>Ubuntu</h2>
+
+            <div class="grid">
+
+              <a href="./ubuntu/java-17/chrome/">
+                <div class="title">
+                  Java 17 — Chrome
+                </div>
+                <div class="description">
+                  Ubuntu
+                </div>
+              </a>
+
+              <a href="./ubuntu/java-17/firefox/">
+                <div class="title">
+                  Java 17 — Firefox
+                </div>
+                <div class="description">
+                  Ubuntu
+                </div>
+              </a>
+
+              <a href="./ubuntu/java-17/edge/">
+                <div class="title">
+                  Java 17 — Edge
+                </div>
+                <div class="description">
+                  Ubuntu
+                </div>
+              </a>
+
+              <a href="./ubuntu/java-21/chrome/">
+                <div class="title">
+                  Java 21 — Chrome
+                </div>
+                <div class="description">
+                  Ubuntu
+                </div>
+              </a>
+
+              <a href="./ubuntu/java-21/firefox/">
+                <div class="title">
+                  Java 21 — Firefox
+                </div>
+                <div class="description">
+                  Ubuntu
+                </div>
+              </a>
+
+              <a href="./ubuntu/java-21/edge/">
+                <div class="title">
+                  Java 21 — Edge
+                </div>
+                <div class="description">
+                  Ubuntu
+                </div>
+              </a>
+
+            </div>
+
+
+            <h2>Windows</h2>
+
+            <div class="grid">
+
+              <a href="./windows/java-17/chrome/">
+                <div class="title">
+                  Java 17 — Chrome
+                </div>
+                <div class="description">
+                  Windows
+                </div>
+              </a>
+
+              <a href="./windows/java-17/firefox/">
+                <div class="title">
+                  Java 17 — Firefox
+                </div>
+                <div class="description">
+                  Windows
+                </div>
+              </a>
+
+              <a href="./windows/java-17/edge/">
+                <div class="title">
+                  Java 17 — Edge
+                </div>
+                <div class="description">
+                  Windows
+                </div>
+              </a>
+
+              <a href="./windows/java-21/chrome/">
+                <div class="title">
+                  Java 21 — Chrome
+                </div>
+                <div class="description">
+                  Windows
+                </div>
+              </a>
+
+              <a href="./windows/java-21/firefox/">
+                <div class="title">
+                  Java 21 — Firefox
+                </div>
+                <div class="description">
+                  Windows
+                </div>
+              </a>
+
+              <a href="./windows/java-21/edge/">
+                <div class="title">
+                  Java 21 — Edge
+                </div>
+                <div class="description">
+                  Windows
+                </div>
+              </a>
+
+            </div>
+
+
+            <h2>macOS</h2>
+
+            <div class="grid">
+
+              <a href="./macos/java-17/chrome/">
+                <div class="title">
+                  Java 17 — Chrome
+                </div>
+                <div class="description">
+                  macOS
+                </div>
+              </a>
+
+              <a href="./macos/java-17/firefox/">
+                <div class="title">
+                  Java 17 — Firefox
+                </div>
+                <div class="description">
+                  macOS
+                </div>
+              </a>
+
+              <a href="./macos/java-17/edge/">
+                <div class="title">
+                  Java 17 — Edge
+                </div>
+                <div class="description">
+                  macOS
+                </div>
+              </a>
+
+              <a href="./macos/java-21/chrome/">
+                <div class="title">
+                  Java 21 — Chrome
+                </div>
+                <div class="description">
+                  macOS
+                </div>
+              </a>
+
+              <a href="./macos/java-21/firefox/">
+                <div class="title">
+                  Java 21 — Firefox
+                </div>
+                <div class="description">
+                  macOS
+                </div>
+              </a>
+
+              <a href="./macos/java-21/edge/">
+                <div class="title">
+                  Java 21 — Edge
+                </div>
+                <div class="description">
+                  macOS
+                </div>
+              </a>
+
+            </div>
+
+          </main>
+
+          </body>
+          </html>
+          EOF
+
+
+      - name: Create Docker index
+        shell: bash
+        run: |
+
+          cat > pages/docker/index.html <<'EOF'
+          <!DOCTYPE html>
+          <html lang="en">
+
+          <head>
+            <meta charset="UTF-8">
+            <meta name="viewport"
+              content="width=device-width, initial-scale=1.0">
+
+            <title>Docker Selenium CI — Allure Reports</title>
+
+            <style>
               body {
                 margin: 0;
                 font-family:
@@ -85,19 +430,106 @@ jobs:
 
               .container {
                 max-width: 900px;
-                margin: 0 auto;
+                margin: auto;
+                padding: 60px 24px;
+              }
+
+              .grid {
+                display: grid;
+                grid-template-columns:
+                  repeat(auto-fit, minmax(220px, 1fr));
+                gap: 16px;
+              }
+
+              a {
+                display: block;
+                padding: 25px;
+                background: white;
+                border: 1px solid #d0d7de;
+                border-radius: 10px;
+                text-decoration: none;
+                color: inherit;
+              }
+
+              .title {
+                font-size: 20px;
+                font-weight: 600;
+              }
+
+              .back {
+                display: inline-block;
+                margin-bottom: 30px;
+                color: #0969da;
+              }
+            </style>
+          </head>
+
+          <body>
+
+          <main class="container">
+
+            <a class="back" href="../">
+              ← Back to Allure Reports
+            </a>
+
+            <h1>Docker Selenium CI</h1>
+
+            <div class="grid">
+
+              <a href="./chrome/">
+                <div class="title">Chrome</div>
+              </a>
+
+              <a href="./firefox/">
+                <div class="title">Firefox</div>
+              </a>
+
+              <a href="./edge/">
+                <div class="title">Edge</div>
+              </a>
+
+            </div>
+
+          </main>
+
+          </body>
+          </html>
+          EOF
+
+
+      - name: Create main index
+        shell: bash
+        run: |
+
+          cat > pages/index.html <<'EOF'
+          <!DOCTYPE html>
+          <html lang="en">
+
+          <head>
+            <meta charset="UTF-8">
+            <meta name="viewport"
+              content="width=device-width, initial-scale=1.0">
+
+            <title>AutoTests — Allure Reports</title>
+
+            <style>
+              body {
+                margin: 0;
+                font-family:
+                  -apple-system,
+                  BlinkMacSystemFont,
+                  "Segoe UI",
+                  Roboto,
+                  Arial,
+                  sans-serif;
+                background: #f6f8fa;
+                color: #24292f;
+              }
+
+              .container {
+                max-width: 900px;
+                margin: auto;
                 padding: 70px 24px;
-              }
-
-              h1 {
-                margin: 0 0 10px;
-                font-size: 36px;
-              }
-
-              .subtitle {
-                margin-bottom: 45px;
-                color: #57606a;
-                font-size: 18px;
               }
 
               .reports {
@@ -115,84 +547,75 @@ jobs:
                 border-radius: 12px;
                 text-decoration: none;
                 color: inherit;
-                transition:
-                  transform 0.15s ease,
-                  box-shadow 0.15s ease;
               }
 
-              .report:hover {
-                transform: translateY(-3px);
-                box-shadow:
-                  0 8px 24px
-                  rgba(140, 149, 159, 0.2);
-              }
-
-              .report-title {
-                margin-bottom: 12px;
+              .title {
                 font-size: 22px;
                 font-weight: 600;
+                margin-bottom: 10px;
               }
 
-              .report-description {
+              .description {
                 color: #57606a;
                 line-height: 1.5;
-              }
-
-              .footer {
-                margin-top: 50px;
-                color: #8c959f;
-                font-size: 14px;
               }
             </style>
           </head>
 
           <body>
-            <main class="container">
 
-              <h1>AutoTests</h1>
+          <main class="container">
 
-              <div class="subtitle">
-                Allure test reports
-              </div>
+            <h1>AutoTests</h1>
 
-              <div class="reports">
+            <p>
+              Allure test reports
+            </p>
 
-                <a class="report" href="./selenium/">
-                  <div class="report-title">
-                    Selenium CI
-                  </div>
+            <div class="reports">
 
-                  <div class="report-description">
-                    Tests executed directly on GitHub Actions.
-                  </div>
-                </a>
+              <a class="report" href="./selenium/">
 
-                <a class="report" href="./docker/">
-                  <div class="report-title">
-                    Docker Selenium CI
-                  </div>
+                <div class="title">
+                  Selenium CI
+                </div>
 
-                  <div class="report-description">
-                    Tests executed inside Docker with
-                    Selenium Standalone Chrome.
-                  </div>
-                </a>
+                <div class="description">
+                  3 operating systems × 2 Java versions ×
+                  3 browsers.
+                </div>
 
-              </div>
+              </a>
 
-              <div class="footer">
-                Generated automatically by GitHub Actions.
-              </div>
 
-            </main>
+              <a class="report" href="./docker/">
+
+                <div class="title">
+                  Docker Selenium CI
+                </div>
+
+                <div class="description">
+                  Selenium Docker tests across Chrome,
+                  Firefox and Edge.
+                </div>
+
+              </a>
+
+            </div>
+
+          </main>
+
           </body>
           </html>
           EOF
 
-      - name: Show Pages structure
+
+      - name: Show final Pages structure
         run: |
-          echo "===== PAGES STRUCTURE ====="
-          find pages -maxdepth 2 -type f | sort | head -100
+          echo "===== FINAL PAGES STRUCTURE ====="
+
+          find pages -maxdepth 5 -type f | sort | head -300
+
 
       - name: Setup Pages
         uses: actions/configure-pages@v5
