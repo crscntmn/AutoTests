@@ -1,11 +1,17 @@
 name: Allure Pages
 
 on:
-  push:
-    branches:
-      - develop
+  workflow_call:
+    inputs:
+      report:
+        description: Report to publish
+        required: true
+        type: string
 
-  workflow_dispatch:
+      run_id:
+        description: CI workflow run ID
+        required: true
+        type: string
 
 permissions:
   actions: read
@@ -25,9 +31,6 @@ jobs:
           ref: develop
           fetch-depth: 0
 
-      # ============================================================
-      # FIND SELENIUM CI RUN FOR CURRENT COMMIT
-      # ============================================================
 
       - name: Wait for Selenium CI
         id: selenium
@@ -85,9 +88,6 @@ jobs:
             sleep 10
           done
 
-      # ============================================================
-      # FIND DOCKER CI RUN FOR CURRENT COMMIT
-      # ============================================================
 
       - name: Wait for Docker Selenium CI
         id: docker
@@ -145,9 +145,6 @@ jobs:
             sleep 10
           done
 
-      # ============================================================
-      # PREPARE REPORT DIRECTORIES
-      # ============================================================
 
       - name: Prepare report directories
         run: |
@@ -156,9 +153,6 @@ jobs:
           mkdir -p pages/selenium
           mkdir -p pages/docker
 
-      # ============================================================
-      # DOWNLOAD SELENIUM REPORT
-      # ============================================================
 
       - name: Download Selenium Allure report
         env:
@@ -172,9 +166,6 @@ jobs:
             --name selenium-allure-report \
             --dir selenium
 
-      # ============================================================
-      # DOWNLOAD DOCKER REPORT
-      # ============================================================
 
       - name: Download Docker Allure report
         env:
@@ -188,9 +179,6 @@ jobs:
             --name docker-allure-report \
             --dir docker
 
-      # ============================================================
-      # VERIFY REPORTS
-      # ============================================================
 
       - name: Verify Selenium report
         run: |
@@ -206,18 +194,12 @@ jobs:
 
           test -f docker/index.html
 
-      # ============================================================
-      # COPY REPORTS TO PAGES
-      # ============================================================
 
       - name: Copy reports to Pages
         run: |
           cp -r selenium/. pages/selenium/
           cp -r docker/. pages/docker/
 
-      # ============================================================
-      # MAIN PAGE
-      # ============================================================
 
       - name: Create main index.html
         run: |
@@ -355,9 +337,6 @@ jobs:
           </html>
           EOF
 
-      # ============================================================
-      # SHOW STRUCTURE
-      # ============================================================
 
       - name: Show Pages structure
         run: |
@@ -373,9 +352,6 @@ jobs:
           echo "===== DOCKER INDEX ====="
           ls -lh pages/docker/index.html
 
-      # ============================================================
-      # UPDATE DATA BRANCH
-      # ============================================================
 
       - name: Update reports on data branch
         run: |
@@ -401,9 +377,6 @@ jobs:
             git push origin develop
           fi
 
-      # ============================================================
-      # DEPLOY GITHUB PAGES
-      # ============================================================
 
       - name: Setup Pages
         uses: actions/configure-pages@v5
