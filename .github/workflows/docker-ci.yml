@@ -4,14 +4,15 @@ on:
   workflow_call:
     outputs:
       run_id:
-        description: Workflow run ID
-        value: ${{ jobs.docker-tests.outputs.run_id }}
+        description: Docker Selenium CI workflow run ID
+        value: ${{ github.run_id }}
 
 permissions:
   contents: read
 
 jobs:
   docker-tests:
+    name: Docker Selenium tests
     runs-on: ubuntu-latest
 
     outputs:
@@ -78,13 +79,19 @@ jobs:
           docker cp autotests:/app/allure-results/. \
             docker-results/allure-results/ || true
 
+          echo ""
           echo "===== SUREFIRE REPORTS ====="
-          find docker-results/surefire-reports -type f 2>/dev/null || true
 
+          find docker-results/surefire-reports \
+            -type f 2>/dev/null || true
+
+          echo ""
           echo "===== ALLURE RESULTS ====="
-          find docker-results/allure-results -type f 2>/dev/null || true
 
-      - name: Upload Docker test reports
+          find docker-results/allure-results \
+            -type f 2>/dev/null || true
+
+      - name: Upload Docker Surefire reports
         if: always()
         uses: actions/upload-artifact@v6
         with:
@@ -107,8 +114,9 @@ jobs:
   allure-report:
     name: Generate Docker Allure Report
     runs-on: ubuntu-latest
+
     needs: docker-tests
-    if: always()
+    if: always() && needs.docker-tests.result != 'cancelled'
 
     steps:
       - name: Download Docker Allure results
@@ -120,7 +128,10 @@ jobs:
       - name: Show Allure results
         run: |
           echo "===== DOCKER ALLURE RESULTS ====="
+
           find allure-results -type f
+
+          echo ""
           echo "Files: $(find allure-results -type f | wc -l)"
 
       - name: Set up Java

@@ -26,17 +26,25 @@ permissions:
   contents: read
 
 jobs:
+
   selenium:
     name: Selenium CI
+
     uses: ./.github/workflows/ci.yml
+
     secrets: inherit
+
     with:
       suite: ${{ inputs.suite || 'all' }}
 
+
   docker:
     name: Docker Selenium CI
+
     uses: ./.github/workflows/docker-ci.yml
+
     secrets: inherit
+
 
   publish:
     name: Publish Allure Pages
