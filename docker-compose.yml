@@ -16,10 +16,12 @@ services:
           "CMD-SHELL",
           "curl -f http://localhost:4444/status || exit 1"
         ]
+
       interval: 5s
       timeout: 5s
       retries: 20
       start_period: 10s
+
 
   autotests:
     build: .
@@ -27,6 +29,7 @@ services:
     container_name: autotests
 
     environment:
+
       SELENIUM_REMOTE_URL: http://selenium:4444/wd/hub
 
       BROWSER: ${BROWSER:-chrome}

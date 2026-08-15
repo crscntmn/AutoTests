@@ -140,6 +140,7 @@ jobs:
           <head>
             <meta charset="UTF-8">
             <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
             <title>Selenium Allure Reports</title>
 
             <style>
@@ -186,6 +187,21 @@ jobs:
 
               h2 {
                 margin-top: 0;
+                margin-bottom: 24px;
+              }
+
+              .java {
+                margin-bottom: 24px;
+              }
+
+              .java:last-child {
+                margin-bottom: 0;
+              }
+
+              .java-title {
+                font-size: 17px;
+                font-weight: 600;
+                margin-bottom: 12px;
               }
 
               .links {
@@ -237,7 +253,6 @@ jobs:
               html += f"""
             <section class="os">
               <h2>{escape(os_name)}</h2>
-              <div class="links">
           """
 
               for java_dir in sorted(os_dir.iterdir()):
@@ -246,6 +261,15 @@ jobs:
 
                   java = java_dir.name
 
+                  html += f"""
+              <div class="java">
+                <div class="java-title">
+                  Java {escape(java)}
+                </div>
+
+                <div class="links">
+          """
+
                   for browser_dir in sorted(java_dir.iterdir()):
                       if not browser_dir.is_dir():
                           continue
@@ -253,13 +277,17 @@ jobs:
                       browser = browser_dir.name
 
                       html += f"""
-                <a href="./{escape(os_name)}/{escape(java)}/{escape(browser)}/">
-                  Java {escape(java)} — {escape(browser)}
-                </a>
+                  <a href="./{escape(os_name)}/{escape(java)}/{escape(browser)}/">
+                    {escape(browser)}
+                  </a>
+          """
+
+                  html += """
+                </div>
+              </div>
           """
 
               html += """
-              </div>
             </section>
           """
 
@@ -275,7 +303,7 @@ jobs:
           PY
 
           echo "===== GENERATED SELENIUM INDEX ====="
-          sed -n '1,250p' pages/selenium/index.html
+          sed -n '1,300p' pages/selenium/index.html
 
       - name: Create main index
         shell: bash

@@ -1,5 +1,6 @@
 name: Docker Selenium CI
 
+
 on:
   workflow_call:
     outputs:
@@ -7,25 +8,50 @@ on:
         description: Workflow run ID
         value: ${{ jobs.docker-tests.outputs.run_id }}
 
+
 permissions:
   contents: read
+
 
 jobs:
 
   docker-tests:
 
-    name: Docker Selenium tests
+    name: Docker Selenium tests (${{ matrix.browser }})
 
     runs-on: ubuntu-latest
+
+    strategy:
+      fail-fast: false
+
+      matrix:
+
+        include:
+
+          - browser: chrome
+            selenium_image: selenium/standalone-chrome:latest
+
+          - browser: edge
+            selenium_image: selenium/standalone-edge:latest
+
+          - browser: firefox
+            selenium_image: selenium/standalone-firefox:latest
+
 
     outputs:
       run_id: ${{ github.run_id }}
 
+
     env:
+
       PASSWORD: ${{ secrets.PASSWORD }}
       SHORT_PASSWORD: ${{ secrets.SHORT_PASSWORD }}
       INVALIDATE_PASSWORD: ${{ secrets.INVALIDATE_PASSWORD }}
       WRONG_PASSWORD: ${{ secrets.WRONG_PASSWORD }}
+
+      BROWSER: ${{ matrix.browser }}
+      SELENIUM_IMAGE: ${{ matrix.selenium_image }}
+
 
     steps:
       - name: Checkout repository
@@ -33,23 +59,39 @@ jobs:
 
       - name: Show Docker environment
         run: |
+
+          echo "========================================"
+          echo "Browser: ${BROWSER}"
+          echo "Selenium image: ${SELENIUM_IMAGE}"
+          echo "========================================"
+
           docker --version
           docker compose version
 
+          echo ""
           echo "===== Docker Compose services ====="
 
           docker compose \
             -f docker-compose.yml \
             config --services
 
+          echo ""
+          echo "===== Docker Compose configuration ====="
+
+          docker compose \
+            -f docker-compose.yml \
+            config
+
       - name: Build autotests image
         run: |
+
           docker compose \
             -f docker-compose.yml \
             build autotests
 
       - name: Start Selenium
         run: |
+
           docker compose \
             -f docker-compose.yml \
             up -d selenium
@@ -57,37 +99,52 @@ jobs:
       - name: Show containers
         if: always()
         run: |
+
           docker compose \
             -f docker-compose.yml \
             ps -a
 
       - name: Check Selenium
         run: |
+
           echo "Waiting for Selenium..."
 
           for i in {1..30}; do
+
             if curl -sf http://localhost:4444/status > /dev/null; then
+
               echo "Selenium is ready!"
+
               curl -s http://localhost:4444/status
+
               exit 0
+
             fi
 
             echo "Selenium is not ready yet..."
             echo "Attempt $i/30"
+
             sleep 2
+
           done
 
+
           echo "Selenium did not become ready."
+
 
           docker compose \
             -f docker-compose.yml \
             ps -a
 
+
+          echo ""
           echo "===== Selenium logs ====="
+
 
           docker compose \
             -f docker-compose.yml \
             logs selenium
+
 
           exit 1
 
@@ -95,6 +152,13 @@ jobs:
         id: run-tests
         continue-on-error: true
         run: |
+
+          echo "========================================"
+          echo "Running tests"
+          echo "Browser: ${BROWSER}"
+          echo "Selenium: ${SELENIUM_IMAGE}"
+          echo "========================================"
+
           docker compose \
             -f docker-compose.yml \
             up autotests
@@ -102,18 +166,32 @@ jobs:
       - name: Show Docker containers
         if: always()
         run: |
+
           echo "===== Docker containers ====="
 
           docker compose \
             -f docker-compose.yml \
             ps -a
 
+
           echo ""
           echo "===== Autotests logs ====="
 
+
           docker compose \
             -f docker-compose.yml \
-            logs autotests || true
+            logs autotests \
+            || true
+
+
+          echo ""
+          echo "===== Selenium logs ====="
+
+
+          docker compose \
+            -f docker-compose.yml \
+            logs selenium \
+            || true
 
       - name: Collect test reports
         if: always()
@@ -122,22 +200,33 @@ jobs:
           mkdir -p docker-results/surefire-reports
           mkdir -p docker-results/allure-results
 
-          echo "===== Copy Surefire reports ====="
+
+          echo "========================================"
+          echo "Copy Surefire reports"
+          echo "========================================"
+
 
           docker cp \
             autotests:/app/target/surefire-reports/. \
             docker-results/surefire-reports/ \
             || true
 
-          echo "===== Copy Allure results ====="
+
+          echo ""
+          echo "========================================"
+          echo "Copy Allure results"
+          echo "========================================"
+
 
           docker cp \
             autotests:/app/allure-results/. \
             docker-results/allure-results/ \
             || true
 
+
           echo ""
           echo "===== SUREFIRE REPORTS ====="
+
 
           find \
             docker-results/surefire-reports \
@@ -145,8 +234,10 @@ jobs:
             2>/dev/null \
             || true
 
+
           echo ""
           echo "===== ALLURE RESULTS ====="
+
 
           find \
             docker-results/allure-results \
@@ -158,21 +249,28 @@ jobs:
         if: always()
         uses: actions/upload-artifact@v6
         with:
-          name: docker-surefire-reports
+
+          name: docker-surefire-reports-${{ matrix.browser }}
+
           path: docker-results/surefire-reports/
+
           if-no-files-found: warn
 
       - name: Upload Docker Allure results
         if: always()
         uses: actions/upload-artifact@v6
         with:
-          name: docker-allure-results
+
+          name: docker-allure-results-${{ matrix.browser }}
+
           path: docker-results/allure-results/
+
           if-no-files-found: warn
 
       - name: Stop Selenium
         if: always()
         run: |
+
           docker compose \
             -f docker-compose.yml \
             down
@@ -180,12 +278,17 @@ jobs:
       - name: Fail workflow if tests failed
         if: steps.run-tests.outcome == 'failure'
         run: |
-          echo "Docker tests failed."
+
+          echo "========================================"
+          echo "Docker tests failed"
+          echo "Browser: ${BROWSER}"
+          echo "========================================"
+
           exit 1
 
   allure-report:
 
-    name: Generate Docker Allure Report
+    name: Generate Docker Allure Reports
 
     runs-on: ubuntu-latest
 
@@ -194,94 +297,448 @@ jobs:
 
     if: always()
 
+
     steps:
-      - name: Download Docker Allure results
-        uses: actions/download-artifact@v6
+      - name: Prepare directories
+        run: |
+
+          rm -rf allure-results
+          rm -rf docker-allure-report
+
+          mkdir -p allure-results
+          mkdir -p docker-allure-report
+
+      - name: Download Chrome Allure results
+        uses: actions/download-artifact@v7
         continue-on-error: true
         with:
-          name: docker-allure-results
-          path: allure-results
+
+          name: docker-allure-results-chrome
+
+          path: allure-results/chrome
+
+      - name: Download Edge Allure results
+        uses: actions/download-artifact@v7
+        continue-on-error: true
+        with:
+
+          name: docker-allure-results-edge
+
+          path: allure-results/edge
+
+      - name: Download Firefox Allure results
+        uses: actions/download-artifact@v7
+        continue-on-error: true
+        with:
+
+          name: docker-allure-results-firefox
+
+          path: allure-results/firefox
 
       - name: Show Allure results
         if: always()
         run: |
-          echo "===== DOCKER ALLURE RESULTS ====="
 
-          if [ -d "allure-results" ]; then
-            find allure-results -type f | head -100 || true
-          else
-            echo "Allure results directory does not exist."
-          fi
+          echo "========================================"
+          echo "DOCKER ALLURE RESULTS"
+          echo "========================================"
+
+
+          for browser in chrome edge firefox; do
+
+            echo ""
+            echo "===== ${browser} ====="
+
+            if [ -d "allure-results/${browser}" ]; then
+
+              find \
+                "allure-results/${browser}" \
+                -type f \
+                | head -100 \
+                || true
+
+            else
+
+              echo "No results directory."
+
+            fi
+
+          done
 
       - name: Set up Java
         uses: actions/setup-java@v5
         with:
+
           distribution: temurin
           java-version: 21
 
       - name: Install Allure CLI
         run: |
+
           curl -Lo allure.tgz \
             https://github.com/allure-framework/allure2/releases/download/2.34.1/allure-2.34.1.tgz
 
+
           tar -xzf allure.tgz
 
-      - name: Generate Docker Allure Report
+      - name: Generate Chrome Allure Report
         if: always()
         run: |
-          rm -rf docker-allure-report
-          mkdir -p docker-allure-report
 
-          if [ -d "allure-results" ] && \
-             [ "$(find allure-results -type f | wc -l)" -gt 0 ]; then
+          mkdir -p docker-allure-report/chrome
 
-            echo "Generating Allure report..."
+
+          if [ -d "allure-results/chrome" ] && \
+             [ "$(find allure-results/chrome -type f | wc -l)" -gt 0 ]; then
+
+            echo "Generating Chrome Allure report..."
+
 
             ./allure-2.34.1/bin/allure generate \
-              allure-results \
+              allure-results/chrome \
               --clean \
-              -o docker-allure-report
+              -o docker-allure-report/chrome
 
-            test -f docker-allure-report/index.html
 
-            echo "Allure report generated successfully."
+            test -f docker-allure-report/chrome/index.html
 
           else
 
-            echo "No Allure results found."
+            echo "No Chrome Allure results."
 
             printf '%s\n' \
               '<!DOCTYPE html>' \
               '<html lang="en">' \
               '<head>' \
               '  <meta charset="UTF-8">' \
-              '  <title>Docker Selenium Allure Report</title>' \
+              '  <title>Chrome Allure Report</title>' \
               '</head>' \
               '<body>' \
-              '  <h1>No Allure results</h1>' \
-              '  <p>No Allure test results were produced for this Docker run.</p>' \
+              '  <h1>No Chrome Allure results</h1>' \
+              '  <p>No Allure test results were produced for Chrome.</p>' \
               '</body>' \
               '</html>' \
-              > docker-allure-report/index.html
+              > docker-allure-report/chrome/index.html
 
           fi
+
+      - name: Generate Edge Allure Report
+        if: always()
+        run: |
+
+          mkdir -p docker-allure-report/edge
+
+
+          if [ -d "allure-results/edge" ] && \
+             [ "$(find allure-results/edge -type f | wc -l)" -gt 0 ]; then
+
+            echo "Generating Edge Allure report..."
+
+
+            ./allure-2.34.1/bin/allure generate \
+              allure-results/edge \
+              --clean \
+              -o docker-allure-report/edge
+
+
+            test -f docker-allure-report/edge/index.html
+
+          else
+
+            echo "No Edge Allure results."
+
+            printf '%s\n' \
+              '<!DOCTYPE html>' \
+              '<html lang="en">' \
+              '<head>' \
+              '  <meta charset="UTF-8">' \
+              '  <title>Edge Allure Report</title>' \
+              '</head>' \
+              '<body>' \
+              '  <h1>No Edge Allure results</h1>' \
+              '  <p>No Allure test results were produced for Edge.</p>' \
+              '</body>' \
+              '</html>' \
+              > docker-allure-report/edge/index.html
+
+          fi
+
+      - name: Generate Firefox Allure Report
+        if: always()
+        run: |
+
+          mkdir -p docker-allure-report/firefox
+
+
+          if [ -d "allure-results/firefox" ] && \
+             [ "$(find allure-results/firefox -type f | wc -l)" -gt 0 ]; then
+
+            echo "Generating Firefox Allure report..."
+
+
+            ./allure-2.34.1/bin/allure generate \
+              allure-results/firefox \
+              --clean \
+              -o docker-allure-report/firefox
+
+
+            test -f docker-allure-report/firefox/index.html
+
+          else
+
+            echo "No Firefox Allure results."
+
+            printf '%s\n' \
+              '<!DOCTYPE html>' \
+              '<html lang="en">' \
+              '<head>' \
+              '  <meta charset="UTF-8">' \
+              '  <title>Firefox Allure Report</title>' \
+              '</head>' \
+              '<body>' \
+              '  <h1>No Firefox Allure results</h1>' \
+              '  <p>No Allure test results were produced for Firefox.</p>' \
+              '</body>' \
+              '</html>' \
+              > docker-allure-report/firefox/index.html
+
+          fi
+
+      - name: Create Docker Allure index
+        shell: bash
+        run: |
+
+          cat > docker-allure-report/index.html <<'HTML'
+          <!DOCTYPE html>
+          <html lang="en">
+
+          <head>
+
+            <meta charset="UTF-8">
+
+            <meta
+              name="viewport"
+              content="width=device-width, initial-scale=1.0"
+            >
+
+            <title>Docker Selenium Allure Reports</title>
+
+            <style>
+
+              * {
+                box-sizing: border-box;
+              }
+
+              body {
+
+                margin: 0;
+
+                font-family:
+                  -apple-system,
+                  BlinkMacSystemFont,
+                  "Segoe UI",
+                  Roboto,
+                  Arial,
+                  sans-serif;
+
+                background: #f6f8fa;
+
+                color: #24292f;
+              }
+
+              .container {
+
+                max-width: 900px;
+
+                margin: 0 auto;
+
+                padding: 60px 24px;
+              }
+
+              h1 {
+
+                margin: 0 0 10px;
+
+                font-size: 32px;
+              }
+
+              .subtitle {
+
+                color: #57606a;
+
+                margin-bottom: 35px;
+
+                font-size: 17px;
+              }
+
+              .reports {
+
+                display: grid;
+
+                grid-template-columns:
+                  repeat(auto-fit, minmax(220px, 1fr));
+
+                gap: 18px;
+              }
+
+              .report {
+
+                display: block;
+
+                padding: 24px;
+
+                background: white;
+
+                border: 1px solid #d0d7de;
+
+                border-radius: 12px;
+
+                text-decoration: none;
+
+                color: inherit;
+
+                transition:
+                  transform 0.15s ease,
+                  box-shadow 0.15s ease;
+              }
+
+              .report:hover {
+
+                transform: translateY(-3px);
+
+                box-shadow:
+                  0 8px 24px
+                  rgba(140, 149, 159, 0.2);
+              }
+
+              .report-title {
+
+                font-size: 20px;
+
+                font-weight: 600;
+
+                margin-bottom: 8px;
+              }
+
+              .report-description {
+
+                color: #57606a;
+
+                line-height: 1.5;
+              }
+
+            </style>
+
+          </head>
+
+
+          <body>
+
+            <main class="container">
+
+              <h1>
+                Docker Selenium Allure Reports
+              </h1>
+
+              <div class="subtitle">
+                Separate Allure reports for each browser.
+              </div>
+
+
+              <div class="reports">
+
+                <a
+                  class="report"
+                  href="./chrome/"
+                >
+
+                  <div class="report-title">
+                    Chrome
+                  </div>
+
+                  <div class="report-description">
+                    Allure report for Chrome tests.
+                  </div>
+
+                </a>
+
+
+                <a
+                  class="report"
+                  href="./edge/"
+                >
+
+                  <div class="report-title">
+                    Edge
+                  </div>
+
+                  <div class="report-description">
+                    Allure report for Edge tests.
+                  </div>
+
+                </a>
+
+
+                <a
+                  class="report"
+                  href="./firefox/"
+                >
+
+                  <div class="report-title">
+                    Firefox
+                  </div>
+
+                  <div class="report-description">
+                    Allure report for Firefox tests.
+                  </div>
+
+                </a>
+
+              </div>
+
+            </main>
+
+          </body>
+
+          </html>
+          HTML
+
+
+          echo "===== DOCKER ALLURE INDEX ====="
+
+          sed -n '1,250p' docker-allure-report/index.html
 
       - name: Verify Docker Allure Report
         if: always()
         run: |
-          echo "===== DOCKER ALLURE REPORT ====="
+
+          echo "========================================"
+          echo "DOCKER ALLURE REPORT"
+          echo "========================================"
+
 
           find docker-allure-report \
             -maxdepth 2 \
             -type f \
-            | head -100
+            | sort \
+            | head -200
+
 
           test -f docker-allure-report/index.html
+
+          test -f docker-allure-report/chrome/index.html
+
+          test -f docker-allure-report/edge/index.html
+
+          test -f docker-allure-report/firefox/index.html
 
       - name: Upload Docker Allure Report
         if: always()
         uses: actions/upload-artifact@v6
         with:
+
           name: docker-allure-report
+
           path: docker-allure-report/
+
           if-no-files-found: error
