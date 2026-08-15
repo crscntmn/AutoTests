@@ -27,7 +27,6 @@ on:
 
 permissions:
   contents: read
-  actions: write
 
 jobs:
   test:
@@ -55,7 +54,11 @@ jobs:
           cache: maven
 
       - name: Run all tests
-        if: github.event_name == 'push' || github.event_name == 'schedule' || inputs.suite == 'all' || github.event_name == 'pull_request'
+        if: >
+          github.event_name == 'push' ||
+          github.event_name == 'schedule' ||
+          github.event_name == 'pull_request' ||
+          inputs.suite == 'all'
         run: mvn clean test
 
       - name: Run tagged tests
@@ -78,11 +81,15 @@ jobs:
           path: allure-results/
           if-no-files-found: error
 
+
   selenium-allure-report:
     name: Generate Selenium Allure Report
+
     runs-on: ubuntu-latest
+
     needs: test
-    if: always() && needs.test.result == 'success'
+
+    if: always() && needs.test.result != 'cancelled'
 
     steps:
       - name: Download Selenium Allure results
@@ -95,7 +102,13 @@ jobs:
       - name: Show Allure results
         run: |
           echo "===== SELENIUM ALLURE RESULTS ====="
+
           find allure-results -type f
+
+          echo ""
+          echo "===== FILE COUNT ====="
+
+          find allure-results -type f | wc -l
 
       - name: Set up Java
         uses: actions/setup-java@v5
@@ -110,6 +123,10 @@ jobs:
 
           tar -xzf allure.tgz
 
+      - name: Check Allure version
+        run: |
+          ./allure-2.34.1/bin/allure --version
+
       - name: Generate Selenium Allure Report
         run: |
           ./allure-2.34.1/bin/allure generate \
@@ -119,6 +136,10 @@ jobs:
 
       - name: Verify Selenium Allure Report
         run: |
+          echo "===== SELENIUM ALLURE REPORT ====="
+
+          find selenium-allure-report -maxdepth 2 -type f | head -50
+
           test -f selenium-allure-report/index.html
 
       - name: Upload Selenium Allure Report
@@ -127,16 +148,3 @@ jobs:
           name: selenium-allure-report
           path: selenium-allure-report/
           if-no-files-found: error
-
-      - name: Trigger Allure Pages
-        env:
-          GH_TOKEN: ${{ github.token }}
-        run: |
-          echo "Triggering Allure Pages..."
-          echo "CI run ID: ${{ github.run_id }}"
-
-          gh workflow run allure-pages.yml \
-            --repo "${{ github.repository }}" \
-            --ref develop \
-            -f report=selenium \
-            -f run_id="${{ github.run_id }}"

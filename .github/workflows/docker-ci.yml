@@ -9,7 +9,6 @@ on:
 
 permissions:
   contents: read
-  actions: write
 
 jobs:
   docker-tests:
@@ -43,12 +42,15 @@ jobs:
             fi
 
             echo "Selenium is not ready yet... attempt $i/30"
+
             sleep 2
           done
 
           echo "Selenium did not become ready"
+
           docker compose ps
           docker compose logs chrome
+
           exit 1
 
       - name: Run tests
@@ -67,18 +69,28 @@ jobs:
           mkdir -p docker-results/allure-results
 
           echo "===== COPYING SUREFIRE REPORTS ====="
-          docker cp autotests:/app/target/surefire-reports/. \
+
+          docker cp \
+            autotests:/app/target/surefire-reports/. \
             docker-results/surefire-reports/ || true
 
           echo "===== COPYING ALLURE RESULTS ====="
-          docker cp autotests:/app/allure-results/. \
+
+          docker cp \
+            autotests:/app/allure-results/. \
             docker-results/allure-results/ || true
 
+          echo ""
           echo "===== SUREFIRE REPORTS ====="
-          find docker-results/surefire-reports -type f 2>/dev/null || true
 
+          find docker-results/surefire-reports \
+            -type f 2>/dev/null || true
+
+          echo ""
           echo "===== ALLURE RESULTS ====="
-          find docker-results/allure-results -type f 2>/dev/null || true
+
+          find docker-results/allure-results \
+            -type f 2>/dev/null || true
 
       - name: Upload Docker test reports
         if: always()
@@ -100,11 +112,15 @@ jobs:
         if: steps.run-tests.outcome == 'failure'
         run: exit 1
 
+
   docker-allure-report:
     name: Generate Docker Allure Report
+
     runs-on: ubuntu-latest
+
     needs: docker-tests
-    if: always() && needs.docker-tests.result == 'success'
+
+    if: always() && needs.docker-tests.result != 'cancelled'
 
     steps:
       - name: Download Docker Allure results
@@ -116,9 +132,12 @@ jobs:
       - name: Show Allure results
         run: |
           echo "===== DOCKER ALLURE RESULTS ====="
+
           find allure-results -type f
 
+          echo ""
           echo "===== FILE COUNT ====="
+
           find allure-results -type f | wc -l
 
       - name: Set up Java
@@ -149,9 +168,7 @@ jobs:
         run: |
           echo "===== DOCKER ALLURE REPORT ====="
 
-          find docker-allure-report \
-            -maxdepth 2 \
-            -type f | head -50
+          find docker-allure-report -maxdepth 2 -type f | head -50
 
           test -f docker-allure-report/index.html
 
@@ -161,16 +178,3 @@ jobs:
           name: docker-allure-report
           path: docker-allure-report/
           if-no-files-found: error
-
-      - name: Trigger Allure Pages
-        env:
-          GH_TOKEN: ${{ github.token }}
-        run: |
-          echo "Triggering Allure Pages..."
-          echo "Docker CI run ID: ${{ github.run_id }}"
-
-          gh workflow run allure-pages.yml \
-            --repo "${{ github.repository }}" \
-            --ref develop \
-            -f report=docker \
-            -f run_id="${{ github.run_id }}"

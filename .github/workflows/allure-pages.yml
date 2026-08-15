@@ -1,20 +1,14 @@
 name: Allure Pages
 
 on:
-  workflow_dispatch:
-    inputs:
-      report:
-        description: Report to publish
-        required: true
-        type: choice
-        options:
-          - selenium
-          - docker
-
-      run_id:
-        description: CI workflow run ID
-        required: true
-        type: string
+  workflow_run:
+    workflows:
+      - Selenium CI
+      - Docker Selenium CI
+    types:
+      - completed
+    branches:
+      - develop
 
 permissions:
   actions: read
@@ -28,115 +22,108 @@ concurrency:
 
 jobs:
   publish:
-    name: Publish ${{ inputs.report }} Allure
+    name: Publish Allure Reports
+
     runs-on: ubuntu-latest
 
+    if: github.event.workflow_run.conclusion == 'success'
+
     steps:
-      - name: Checkout reports data branch
+      - name: Checkout Allure data branch
         uses: actions/checkout@v4
         with:
-          ref: develop
+          ref: allure-pages-data
           fetch-depth: 0
 
-      - name: Show current reports
+      - name: Show triggering workflow
         run: |
-          echo "===== CURRENT REPORTS ====="
+          echo "Workflow: ${{ github.event.workflow_run.name }}"
+          echo "Run ID: ${{ github.event.workflow_run.id }}"
+          echo "Branch: ${{ github.event.workflow_run.head_branch }}"
+          echo "Commit: ${{ github.event.workflow_run.head_sha }}"
 
-          if [ -f selenium/index.html ]; then
-            echo "Selenium report exists"
-          else
-            echo "Selenium report does not exist"
-          fi
-
-          if [ -f docker/index.html ]; then
-            echo "Docker report exists"
-          else
-            echo "Docker report does not exist"
-          fi
-
-      - name: Prepare directories
+      - name: Prepare report directories
         run: |
           mkdir -p selenium
           mkdir -p docker
-          mkdir -p pages/selenium
-          mkdir -p pages/docker
 
       - name: Download Selenium Allure report
-        if: inputs.report == 'selenium'
-        env:
-          GH_TOKEN: ${{ github.token }}
-        run: |
-          echo "Downloading Selenium report from run ${{ inputs.run_id }}"
-
-          rm -rf selenium/*
-
-          gh run download \
-            "${{ inputs.run_id }}" \
-            --repo "${{ github.repository }}" \
-            --name selenium-allure-report \
-            --dir selenium
+        if: github.event.workflow_run.name == 'Selenium CI'
+        uses: actions/download-artifact@v6
+        with:
+          name: selenium-allure-report
+          path: selenium
+          run-id: ${{ github.event.workflow_run.id }}
+          github-token: ${{ github.token }}
 
       - name: Download Docker Allure report
-        if: inputs.report == 'docker'
-        env:
-          GH_TOKEN: ${{ github.token }}
-        run: |
-          echo "Downloading Docker report from run ${{ inputs.run_id }}"
-
-          rm -rf docker/*
-
-          gh run download \
-            "${{ inputs.run_id }}" \
-            --repo "${{ github.repository }}" \
-            --name docker-allure-report \
-            --dir docker
+        if: github.event.workflow_run.name == 'Docker Selenium CI'
+        uses: actions/download-artifact@v6
+        with:
+          name: docker-allure-report
+          path: docker
+          run-id: ${{ github.event.workflow_run.id }}
+          github-token: ${{ github.token }}
 
       - name: Verify Selenium report
-        if: inputs.report == 'selenium'
+        if: github.event.workflow_run.name == 'Selenium CI'
         run: |
           echo "===== SELENIUM REPORT ====="
 
-          find selenium \
-            -maxdepth 2 \
-            -type f | head -30
+          find selenium -maxdepth 2 -type f | head -30
 
           test -f selenium/index.html
 
       - name: Verify Docker report
-        if: inputs.report == 'docker'
+        if: github.event.workflow_run.name == 'Docker Selenium CI'
         run: |
           echo "===== DOCKER REPORT ====="
 
-          find docker \
-            -maxdepth 2 \
-            -type f | head -30
+          find docker -maxdepth 2 -type f | head -30
 
           test -f docker/index.html
 
-      - name: Copy reports to Pages
+      - name: Show current stored reports
         run: |
-          rm -rf pages/selenium
-          rm -rf pages/docker
+          echo "===== STORED SELENIUM REPORT ====="
+
+          if [ -f selenium/index.html ]; then
+            echo "Selenium report exists."
+          else
+            echo "Selenium report does not exist."
+          fi
+
+          echo ""
+          echo "===== STORED DOCKER REPORT ====="
+
+          if [ -f docker/index.html ]; then
+            echo "Docker report exists."
+          else
+            echo "Docker report does not exist."
+          fi
+
+      - name: Prepare Pages directory
+        run: |
+          rm -rf pages
 
           mkdir -p pages/selenium
           mkdir -p pages/docker
 
-          if [ -f selenium/index.html ]; then
-            cp -r selenium/. pages/selenium/
-          fi
-
-          if [ -f docker/index.html ]; then
-            cp -r docker/. pages/docker/
-          fi
+          cp -r selenium/. pages/selenium/
+          cp -r docker/. pages/docker/
 
       - name: Create main index.html
         run: |
           cat > pages/index.html <<'EOF'
           <!DOCTYPE html>
           <html lang="en">
+
           <head>
             <meta charset="UTF-8">
-            <meta name="viewport" content="width=device-width, initial-scale=1.0">
+            <meta
+              name="viewport"
+              content="width=device-width, initial-scale=1.0"
+            >
 
             <title>AutoTests — Allure Reports</title>
 
@@ -154,6 +141,7 @@ jobs:
                   Roboto,
                   Arial,
                   sans-serif;
+
                 background: #f6f8fa;
                 color: #24292f;
               }
@@ -179,17 +167,22 @@ jobs:
                 display: grid;
                 grid-template-columns:
                   repeat(auto-fit, minmax(280px, 1fr));
+
                 gap: 24px;
               }
 
               .report {
                 display: block;
                 padding: 30px;
+
                 background: white;
+
                 border: 1px solid #d0d7de;
                 border-radius: 12px;
+
                 text-decoration: none;
                 color: inherit;
+
                 transition:
                   transform 0.15s ease,
                   box-shadow 0.15s ease;
@@ -197,12 +190,15 @@ jobs:
 
               .report:hover {
                 transform: translateY(-3px);
+
                 box-shadow:
-                  0 8px 24px rgba(140, 149, 159, 0.2);
+                  0 8px 24px
+                  rgba(140, 149, 159, 0.2);
               }
 
               .report-title {
                 margin-bottom: 12px;
+
                 font-size: 22px;
                 font-weight: 600;
               }
@@ -214,6 +210,7 @@ jobs:
 
               .footer {
                 margin-top: 50px;
+
                 color: #8c959f;
                 font-size: 14px;
               }
@@ -232,24 +229,31 @@ jobs:
 
               <div class="reports">
 
-                <a class="report" href="./selenium/">
+                <a
+                  class="report"
+                  href="./selenium/"
+                >
                   <div class="report-title">
                     Selenium CI
                   </div>
 
                   <div class="report-description">
-                    Tests executed directly on GitHub Actions.
+                    Tests executed directly on
+                    GitHub Actions.
                   </div>
                 </a>
 
-                <a class="report" href="./docker/">
+                <a
+                  class="report"
+                  href="./docker/"
+                >
                   <div class="report-title">
                     Docker Selenium CI
                   </div>
 
                   <div class="report-description">
-                    Tests executed inside Docker with
-                    Selenium Standalone Chrome.
+                    Tests executed inside Docker
+                    with Selenium Standalone Chrome.
                   </div>
                 </a>
 
@@ -272,24 +276,22 @@ jobs:
           find pages -maxdepth 2 -type f | sort | head -100
 
           echo ""
-          echo "===== SELENIUM INDEX ====="
+          echo "===== SELENIUM ====="
 
-          if [ -f pages/selenium/index.html ]; then
-            ls -lh pages/selenium/index.html
-          else
-            echo "Selenium report is not present"
-          fi
+          ls -lh pages/selenium/index.html
 
           echo ""
-          echo "===== DOCKER INDEX ====="
+          echo "===== DOCKER ====="
 
-          if [ -f pages/docker/index.html ]; then
-            ls -lh pages/docker/index.html
-          else
-            echo "Docker report is not present"
-          fi
+          ls -lh pages/docker/index.html
 
-      - name: Update reports data branch
+      - name: Configure Git
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email \
+            "41898282+github-actions[bot]@users.noreply.github.com"
+
+      - name: Update Allure data branch
         run: |
           rm -rf selenium
           rm -rf docker
@@ -297,20 +299,10 @@ jobs:
           mkdir -p selenium
           mkdir -p docker
 
-          if [ -f pages/selenium/index.html ]; then
-            cp -r pages/selenium/. selenium/
-          fi
+          cp -r pages/selenium/. selenium/
+          cp -r pages/docker/. docker/
 
-          if [ -f pages/docker/index.html ]; then
-            cp -r pages/docker/. docker/
-          fi
-
-      - name: Configure Git
-        run: |
-          git config user.name "github-actions[bot]"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-
-      - name: Commit reports
+      - name: Commit updated reports
         run: |
           git add selenium docker
 
@@ -318,9 +310,9 @@ jobs:
             echo "No report changes."
           else
             git commit \
-              -m "Update ${{ inputs.report }} Allure report from run ${{ inputs.run_id }}"
+              -m "Update Allure report from ${{ github.event.workflow_run.name }} #${{ github.event.workflow_run.id }}"
 
-            git push origin develop
+            git push origin allure-pages-data
           fi
 
       - name: Setup Pages
