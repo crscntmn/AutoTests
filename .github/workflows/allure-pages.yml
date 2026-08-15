@@ -129,9 +129,13 @@ jobs:
       - name: Create Selenium index
         shell: bash
         run: |
+          python3 <<'PY'
+          from pathlib import Path
+          from html import escape
 
-          cat > pages/selenium/index.html <<'EOF'
-          <!DOCTYPE html>
+          root = Path("pages/selenium")
+
+          html = """<!DOCTYPE html>
           <html lang="en">
           <head>
             <meta charset="UTF-8">
@@ -139,6 +143,10 @@ jobs:
             <title>Selenium Allure Reports</title>
 
             <style>
+              * {
+                box-sizing: border-box;
+              }
+
               body {
                 font-family:
                   -apple-system,
@@ -207,7 +215,6 @@ jobs:
           </head>
 
           <body>
-
           <main class="container">
 
             <div class="back">
@@ -219,61 +226,65 @@ jobs:
             <div class="subtitle">
               Reports by operating system, Java version and browser.
             </div>
+          """
 
-            EOF
+          for os_dir in sorted(root.iterdir()):
+              if not os_dir.is_dir():
+                  continue
 
-          for os_dir in pages/selenium/*/; do
+              os_name = os_dir.name
 
-            [ -d "$os_dir" ] || continue
+              html += f"""
+            <section class="os">
+              <h2>{escape(os_name)}</h2>
+              <div class="links">
+          """
 
-            os=$(basename "$os_dir")
+              for java_dir in sorted(os_dir.iterdir()):
+                  if not java_dir.is_dir():
+                      continue
 
-            echo "<section class=\"os\">" >> pages/selenium/index.html
-            echo "<h2>$os</h2>" >> pages/selenium/index.html
-            echo "<div class=\"links\">" >> pages/selenium/index.html
+                  java = java_dir.name
 
-            for java_dir in "$os_dir"*/; do
+                  for browser_dir in sorted(java_dir.iterdir()):
+                      if not browser_dir.is_dir():
+                          continue
 
-              [ -d "$java_dir" ] || continue
+                      browser = browser_dir.name
 
-              java=$(basename "$java_dir")
+                      html += f"""
+                <a href="./{escape(os_name)}/{escape(java)}/{escape(browser)}/">
+                  Java {escape(java)} — {escape(browser)}
+                </a>
+          """
 
-              for browser_dir in "$java_dir"*/; do
+              html += """
+              </div>
+            </section>
+          """
 
-                [ -d "$browser_dir" ] || continue
-
-                browser=$(basename "$browser_dir")
-
-                echo "<a href=\"./$os/$java/$browser/\">Java $java — $browser</a>" \
-                  >> pages/selenium/index.html
-
-              done
-
-            done
-
-            echo "</div>" >> pages/selenium/index.html
-            echo "</section>" >> pages/selenium/index.html
-
-          done
-
-          cat >> pages/selenium/index.html <<'EOF'
-
+          html += """
           </main>
-
           </body>
           </html>
-          EOF
+          """
+
+          (root / "index.html").write_text(html, encoding="utf-8")
+
+          print("Created:", root / "index.html")
+          PY
+
+          echo "===== GENERATED SELENIUM INDEX ====="
+          sed -n '1,250p' pages/selenium/index.html
 
       - name: Create main index
         shell: bash
         run: |
-
-          cat > pages/index.html <<'EOF'
+          cat > pages/index.html <<'HTML'
           <!DOCTYPE html>
           <html lang="en">
 
           <head>
-
             <meta charset="UTF-8">
 
             <meta
@@ -284,7 +295,6 @@ jobs:
             <title>AutoTests — Allure Reports</title>
 
             <style>
-
               * {
                 box-sizing: border-box;
               }
@@ -372,9 +382,7 @@ jobs:
                 color: #8c959f;
                 font-size: 14px;
               }
-
             </style>
-
           </head>
 
           <body>
@@ -390,7 +398,6 @@ jobs:
             <div class="reports">
 
               <a class="report" href="./selenium/">
-
                 <div class="report-title">
                   Selenium CI
                 </div>
@@ -399,11 +406,9 @@ jobs:
                   Selenium tests grouped by OS,
                   Java version and browser.
                 </div>
-
               </a>
 
               <a class="report" href="./docker/">
-
                 <div class="report-title">
                   Docker Selenium CI
                 </div>
@@ -412,7 +417,6 @@ jobs:
                   Tests executed inside Docker
                   with Selenium Standalone Chrome.
                 </div>
-
               </a>
 
             </div>
@@ -425,7 +429,10 @@ jobs:
 
           </body>
           </html>
-          EOF
+          HTML
+
+          echo "===== MAIN INDEX ====="
+          sed -n '1,250p' pages/index.html
 
 
       - name: Show Pages structure

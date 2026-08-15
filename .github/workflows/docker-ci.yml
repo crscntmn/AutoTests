@@ -52,7 +52,7 @@ jobs:
         run: |
           docker compose \
             -f docker-compose.yml \
-            up -d chrome
+            up -d selenium
 
       - name: Show containers
         if: always()
@@ -66,28 +66,18 @@ jobs:
           echo "Waiting for Selenium..."
 
           for i in {1..30}; do
-
-            if curl -sf \
-              http://localhost:4444/status \
-              > /dev/null; then
-
+            if curl -sf http://localhost:4444/status > /dev/null; then
               echo "Selenium is ready!"
-
-              curl -s \
-                http://localhost:4444/status
-
+              curl -s http://localhost:4444/status
               exit 0
             fi
 
             echo "Selenium is not ready yet..."
             echo "Attempt $i/30"
-
             sleep 2
           done
 
           echo "Selenium did not become ready."
-
-          echo "===== Docker Compose status ====="
 
           docker compose \
             -f docker-compose.yml \
@@ -97,7 +87,7 @@ jobs:
 
           docker compose \
             -f docker-compose.yml \
-            logs chrome
+            logs selenium
 
           exit 1
 
