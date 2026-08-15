@@ -32,7 +32,7 @@ jobs:
       - name: Checkout Allure data branch
         uses: actions/checkout@v4
         with:
-          ref: allure-pages-data
+          ref: develop
           fetch-depth: 0
 
       - name: Show triggering workflow
@@ -312,7 +312,7 @@ jobs:
             git commit \
               -m "Update Allure report from ${{ github.event.workflow_run.name }} #${{ github.event.workflow_run.id }}"
 
-            git push origin allure-pages-data
+            git push origin develop
           fi
 
       - name: Setup Pages
