@@ -1,29 +1,17 @@
 name: Selenium CI
 
 on:
-  push:
-    branches:
-      - main
-      - develop
-
-  pull_request:
-    branches:
-      - main
-
-  schedule:
-    - cron: '0 0 * * *'
-
-  workflow_dispatch:
+  workflow_call:
     inputs:
       suite:
         description: Test suite
         required: true
-        default: all
-        type: choice
-        options:
-          - all
-          - smoke
-          - regression
+        type: string
+
+    outputs:
+      run_id:
+        description: Workflow run ID
+        value: ${{ jobs.test.outputs.run_id }}
 
 permissions:
   contents: read
@@ -31,6 +19,9 @@ permissions:
 jobs:
   test:
     runs-on: ubuntu-latest
+
+    outputs:
+      run_id: ${{ github.run_id }}
 
     env:
       PASSWORD: ${{ secrets.PASSWORD }}
@@ -54,7 +45,7 @@ jobs:
           cache: maven
 
       - name: Run all tests
-        if: github.event_name == 'push' || github.event_name == 'schedule' || inputs.suite == 'all' || github.event_name == 'pull_request'
+        if: inputs.suite == 'all'
         run: mvn clean test
 
       - name: Run tagged tests
@@ -67,6 +58,7 @@ jobs:
         with:
           name: surefire-reports-java-${{ matrix.java }}
           path: target/surefire-reports/
+          if-no-files-found: warn
 
       - name: Upload Allure results
         if: always()
@@ -74,8 +66,9 @@ jobs:
         with:
           name: allure-results-java-${{ matrix.java }}
           path: allure-results/
+          if-no-files-found: error
 
-  selenium-allure-report:
+  allure-report:
     name: Generate Selenium Allure Report
     runs-on: ubuntu-latest
     needs: test
@@ -89,10 +82,11 @@ jobs:
           path: allure-results
           merge-multiple: true
 
-      - name: Show Allure results
+      - name: Show Selenium Allure results
         run: |
           echo "===== SELENIUM ALLURE RESULTS ====="
           find allure-results -type f
+          echo "Files: $(find allure-results -type f | wc -l)"
 
       - name: Set up Java
         uses: actions/setup-java@v5
