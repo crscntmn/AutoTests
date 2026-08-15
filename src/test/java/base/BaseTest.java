@@ -1,7 +1,6 @@
 package base;
 
 import auto.tests.config.Config;
-import io.github.bonigarcia.wdm.WebDriverManager;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.openqa.selenium.Dimension;
@@ -23,120 +22,98 @@ public class BaseTest {
     @BeforeEach
     void openPage() throws Exception {
 
-        String browser = System.getenv().getOrDefault("BROWSER", "chrome");
+        String browser = System.getenv().getOrDefault("BROWSER", "chrome").toLowerCase();
         String remoteUrl = System.getenv("SELENIUM_REMOTE_URL");
+        boolean ci = System.getenv("CI") != null;
 
         if (remoteUrl != null && !remoteUrl.isBlank()) {
-            driver = createRemoteDriver(remoteUrl, browser);
+            driver = createRemoteDriver(browser, remoteUrl);
         } else {
-            driver = createLocalDriver(browser);
+            driver = createLocalDriver(browser, ci);
         }
 
         driver.manage().window().setSize(new Dimension(1920, 1080));
         driver.get(Config.URL);
     }
 
-    private WebDriver createLocalDriver(String browser) {
+    private WebDriver createLocalDriver(String browser, boolean ci) {
 
-        boolean ci = System.getenv("CI") != null;
+        switch (browser) {
 
-        return switch (browser.toLowerCase()) {
+            case "firefox":
 
-            case "chrome" -> {
-
-                ChromeOptions options = new ChromeOptions();
+                FirefoxOptions firefoxOptions = new FirefoxOptions();
 
                 if (ci) {
-                    options.addArguments("--headless=new");
-                    options.addArguments("--no-sandbox");
-                    options.addArguments("--disable-dev-shm-usage");
+                    firefoxOptions.addArguments("-headless");
                 }
 
-                WebDriverManager.chromedriver().setup();
+                return new FirefoxDriver(firefoxOptions);
 
-                yield new ChromeDriver(options);
-            }
+            case "edge":
 
-            case "firefox" -> {
-
-                FirefoxOptions options = new FirefoxOptions();
+                EdgeOptions edgeOptions = new EdgeOptions();
 
                 if (ci) {
-                    options.addArguments("-headless");
+                    edgeOptions.addArguments("--headless=new");
+                    edgeOptions.addArguments("--no-sandbox");
+                    edgeOptions.addArguments("--disable-dev-shm-usage");
                 }
 
-                WebDriverManager.firefoxdriver().setup();
+                return new EdgeDriver(edgeOptions);
 
-                yield new FirefoxDriver(options);
-            }
+            case "chrome":
 
-            case "edge" -> {
+            default:
 
-                EdgeOptions options = new EdgeOptions();
+                ChromeOptions chromeOptions = new ChromeOptions();
 
                 if (ci) {
-                    options.addArguments("--headless=new");
-                    options.addArguments("--no-sandbox");
-                    options.addArguments("--disable-dev-shm-usage");
+                    chromeOptions.addArguments("--headless=new");
+                    chromeOptions.addArguments("--no-sandbox");
+                    chromeOptions.addArguments("--disable-dev-shm-usage");
                 }
 
-                WebDriverManager.edgedriver().setup();
-
-                yield new EdgeDriver(options);
-            }
-
-            default -> throw new IllegalArgumentException(
-                    "Unsupported browser: " + browser
-            );
-        };
+                return new ChromeDriver(chromeOptions);
+        }
     }
 
-    private WebDriver createRemoteDriver(String remoteUrl, String browser)
-            throws Exception {
+    private WebDriver createRemoteDriver(
+            String browser,
+            String remoteUrl
+    ) throws Exception {
 
-        return switch (browser.toLowerCase()) {
+        switch (browser) {
 
-            case "chrome" -> {
-                ChromeOptions options = new ChromeOptions();
+            case "firefox":
 
-                options.addArguments("--headless=new");
-                options.addArguments("--no-sandbox");
-                options.addArguments("--disable-dev-shm-usage");
+                FirefoxOptions firefoxOptions = new FirefoxOptions();
 
-                yield new RemoteWebDriver(
+                return new RemoteWebDriver(
                         new URL(remoteUrl),
-                        options
+                        firefoxOptions
                 );
-            }
 
-            case "firefox" -> {
-                FirefoxOptions options = new FirefoxOptions();
+            case "edge":
 
-                options.addArguments("-headless");
+                EdgeOptions edgeOptions = new EdgeOptions();
 
-                yield new RemoteWebDriver(
+                return new RemoteWebDriver(
                         new URL(remoteUrl),
-                        options
+                        edgeOptions
                 );
-            }
 
-            case "edge" -> {
-                EdgeOptions options = new EdgeOptions();
+            case "chrome":
 
-                options.addArguments("--headless=new");
-                options.addArguments("--no-sandbox");
-                options.addArguments("--disable-dev-shm-usage");
+            default:
 
-                yield new RemoteWebDriver(
+                ChromeOptions chromeOptions = new ChromeOptions();
+
+                return new RemoteWebDriver(
                         new URL(remoteUrl),
-                        options
+                        chromeOptions
                 );
-            }
-
-            default -> throw new IllegalArgumentException(
-                    "Unsupported remote browser: " + browser
-            );
-        };
+        }
     }
 
     @AfterEach

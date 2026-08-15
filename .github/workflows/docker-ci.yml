@@ -2,11 +2,10 @@ name: Docker Selenium CI
 
 on:
   workflow_call:
-    inputs:
-      suite:
-        description: Test suite
-        required: true
-        type: string
+    outputs:
+      run_id:
+        description: Docker CI workflow run ID
+        value: ${{ github.run_id }}
 
 permissions:
   contents: read
@@ -15,25 +14,9 @@ jobs:
 
   docker-tests:
 
-    name: Docker Selenium (${{ matrix.browser }})
+    name: Docker Selenium tests
 
     runs-on: ubuntu-latest
-
-    strategy:
-      fail-fast: false
-
-      matrix:
-        include:
-
-          - browser: chrome
-            selenium_image: selenium/standalone-chrome:latest
-
-          - browser: firefox
-            selenium_image: selenium/standalone-firefox:latest
-
-          - browser: edge
-            selenium_image: selenium/standalone-edge:latest
-
 
     env:
       PASSWORD: ${{ secrets.PASSWORD }}
@@ -41,28 +24,16 @@ jobs:
       INVALIDATE_PASSWORD: ${{ secrets.INVALIDATE_PASSWORD }}
       WRONG_PASSWORD: ${{ secrets.WRONG_PASSWORD }}
 
-      BROWSER: ${{ matrix.browser }}
-      SELENIUM_IMAGE: ${{ matrix.selenium_image }}
-
-      TEST_GROUP: ${{ inputs.suite == 'all' && '' || inputs.suite }}
-
-
     steps:
 
       - name: Checkout repository
         uses: actions/checkout@v6
 
-      - name: Show configuration
-        run: |
-          echo "Browser: $BROWSER"
-          echo "Selenium image: $SELENIUM_IMAGE"
-          echo "Test group: $TEST_GROUP"
-
       - name: Build autotests image
         run: docker compose build autotests
 
       - name: Start Selenium
-        run: docker compose up -d selenium
+        run: docker compose up -d chrome
 
       - name: Check Selenium
         run: |
@@ -72,14 +43,11 @@ jobs:
 
             if curl -sf http://localhost:4444/status > /dev/null; then
               echo "Selenium is ready!"
-
               curl -s http://localhost:4444/status
-
               exit 0
             fi
 
             echo "Selenium is not ready yet... attempt $i/30"
-
             sleep 2
 
           done
@@ -87,7 +55,7 @@ jobs:
           echo "Selenium did not become ready"
 
           docker compose ps
-          docker compose logs selenium
+          docker compose logs chrome
 
           exit 1
 
@@ -106,48 +74,29 @@ jobs:
           mkdir -p docker-results/surefire-reports
           mkdir -p docker-results/allure-results
 
-          echo "===== SUREFIRE REPORTS ====="
-
           docker cp autotests:/app/target/surefire-reports/. \
             docker-results/surefire-reports/ || true
-
-          find docker-results/surefire-reports \
-            -type f 2>/dev/null || true
-
-
-          echo "===== ALLURE RESULTS ====="
 
           docker cp autotests:/app/allure-results/. \
             docker-results/allure-results/ || true
 
-          find docker-results/allure-results \
-            -type f 2>/dev/null || true
+          echo "===== SUREFIRE REPORTS ====="
+          find docker-results/surefire-reports -type f 2>/dev/null || true
 
-      - name: Upload Surefire reports
+          echo "===== ALLURE RESULTS ====="
+          find docker-results/allure-results -type f 2>/dev/null || true
+
+      - name: Upload Docker Surefire reports
         if: always()
         uses: actions/upload-artifact@v6
         with:
-          name: docker-surefire-${{ matrix.browser }}
+          name: docker-surefire-reports
           path: docker-results/surefire-reports/
           if-no-files-found: warn
 
-      - name: Upload Allure results
-        if: always()
-        uses: actions/upload-artifact@v6
-        with:
-          name: docker-results-${{ matrix.browser }}
-          path: docker-results/allure-results/
-          if-no-files-found: warn
-
-      - name: Set up Java
-        if: always()
-        uses: actions/setup-java@v5
-        with:
-          distribution: temurin
-          java-version: 21
-
       - name: Install Allure CLI
         if: always()
+        shell: bash
         run: |
           curl -Lo allure.tgz \
             https://github.com/allure-framework/allure2/releases/download/2.34.1/allure-2.34.1.tgz
@@ -156,7 +105,10 @@ jobs:
 
       - name: Generate Docker Allure report
         if: always()
+        shell: bash
         run: |
+          rm -rf docker-allure-report
+
           if [ -d "docker-results/allure-results" ] && \
              [ "$(find docker-results/allure-results -type f | wc -l)" -gt 0 ]; then
 
@@ -169,23 +121,21 @@ jobs:
 
           else
 
-            echo "No Docker Allure results found."
-
             mkdir -p docker-allure-report
 
-            cat > docker-allure-report/index.html <<'EOF'
-            <!DOCTYPE html>
-            <html>
-            <head>
-              <meta charset="UTF-8">
-              <title>Docker Allure Report</title>
-            </head>
-            <body>
-              <h1>No Allure results</h1>
-              <p>No test results were produced for this browser.</p>
-            </body>
-            </html>
-            EOF
+            printf '%s\n' \
+              '<!DOCTYPE html>' \
+              '<html lang="en">' \
+              '<head>' \
+              '<meta charset="UTF-8">' \
+              '<title>Allure Report</title>' \
+              '</head>' \
+              '<body>' \
+              '<h1>No Allure results</h1>' \
+              '<p>No Docker test results were produced.</p>' \
+              '</body>' \
+              '</html>' \
+              > docker-allure-report/index.html
 
           fi
 
@@ -193,7 +143,7 @@ jobs:
         if: always()
         uses: actions/upload-artifact@v6
         with:
-          name: docker-allure-${{ matrix.browser }}
+          name: docker-allure-report
           path: docker-allure-report/
           if-no-files-found: error
 
