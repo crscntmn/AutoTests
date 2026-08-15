@@ -1,12 +1,15 @@
 name: Allure Pages
 
 on:
-  workflow_call:
+  workflow_dispatch:
     inputs:
       report:
         description: Report to publish
         required: true
-        type: string
+        type: choice
+        options:
+          - selenium
+          - docker
 
       run_id:
         description: CI workflow run ID
@@ -20,20 +23,36 @@ permissions:
   id-token: write
 
 concurrency:
-  group: allure-pages-publish
+  group: allure-pages
   cancel-in-progress: false
 
 jobs:
   publish:
-    name: Publish ${{ inputs.report }} Allure Report
+    name: Publish ${{ inputs.report }} Allure
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout Allure Pages data branch
+      - name: Checkout reports data branch
         uses: actions/checkout@v4
         with:
           ref: allure-pages-data
           fetch-depth: 0
+
+      - name: Show current reports
+        run: |
+          echo "===== CURRENT REPORTS ====="
+
+          if [ -f selenium/index.html ]; then
+            echo "Selenium report exists"
+          else
+            echo "Selenium report does not exist"
+          fi
+
+          if [ -f docker/index.html ]; then
+            echo "Docker report exists"
+          else
+            echo "Docker report does not exist"
+          fi
 
       - name: Prepare directories
         run: |
@@ -47,6 +66,8 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
+          echo "Downloading Selenium report from run ${{ inputs.run_id }}"
+
           rm -rf selenium/*
 
           gh run download \
@@ -60,6 +81,8 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
+          echo "Downloading Docker report from run ${{ inputs.run_id }}"
+
           rm -rf docker/*
 
           gh run download \
@@ -69,30 +92,42 @@ jobs:
             --dir docker
 
       - name: Verify Selenium report
+        if: inputs.report == 'selenium'
         run: |
-          if [ ! -f selenium/index.html ]; then
-            echo "Selenium report does not exist."
-          else
-            echo "Selenium report found."
-          fi
+          echo "===== SELENIUM REPORT ====="
+
+          find selenium \
+            -maxdepth 2 \
+            -type f | head -30
+
+          test -f selenium/index.html
 
       - name: Verify Docker report
+        if: inputs.report == 'docker'
         run: |
-          if [ ! -f docker/index.html ]; then
-            echo "Docker report does not exist."
-          else
-            echo "Docker report found."
-          fi
+          echo "===== DOCKER REPORT ====="
 
-      - name: Prepare Pages
+          find docker \
+            -maxdepth 2 \
+            -type f | head -30
+
+          test -f docker/index.html
+
+      - name: Copy reports to Pages
         run: |
-          rm -rf pages
+          rm -rf pages/selenium
+          rm -rf pages/docker
 
           mkdir -p pages/selenium
           mkdir -p pages/docker
 
-          cp -r selenium/. pages/selenium/ 2>/dev/null || true
-          cp -r docker/. pages/docker/ 2>/dev/null || true
+          if [ -f selenium/index.html ]; then
+            cp -r selenium/. pages/selenium/
+          fi
+
+          if [ -f docker/index.html ]; then
+            cp -r docker/. pages/docker/
+          fi
 
       - name: Create main index.html
         run: |
@@ -186,6 +221,7 @@ jobs:
           </head>
 
           <body>
+
             <main class="container">
 
               <h1>AutoTests</h1>
@@ -224,16 +260,36 @@ jobs:
               </div>
 
             </main>
+
           </body>
           </html>
           EOF
 
-      - name: Configure Git
+      - name: Show Pages structure
         run: |
-          git config user.name "github-actions[bot]"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          echo "===== PAGES STRUCTURE ====="
 
-      - name: Update Allure Pages data
+          find pages -maxdepth 2 -type f | sort | head -100
+
+          echo ""
+          echo "===== SELENIUM INDEX ====="
+
+          if [ -f pages/selenium/index.html ]; then
+            ls -lh pages/selenium/index.html
+          else
+            echo "Selenium report is not present"
+          fi
+
+          echo ""
+          echo "===== DOCKER INDEX ====="
+
+          if [ -f pages/docker/index.html ]; then
+            ls -lh pages/docker/index.html
+          else
+            echo "Docker report is not present"
+          fi
+
+      - name: Update reports data branch
         run: |
           rm -rf selenium
           rm -rf docker
@@ -241,15 +297,29 @@ jobs:
           mkdir -p selenium
           mkdir -p docker
 
-          cp -r pages/selenium/. selenium/ 2>/dev/null || true
-          cp -r pages/docker/. docker/ 2>/dev/null || true
+          if [ -f pages/selenium/index.html ]; then
+            cp -r pages/selenium/. selenium/
+          fi
 
+          if [ -f pages/docker/index.html ]; then
+            cp -r pages/docker/. docker/
+          fi
+
+      - name: Configure Git
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+
+      - name: Commit reports
+        run: |
           git add selenium docker
 
           if git diff --cached --quiet; then
             echo "No report changes."
           else
-            git commit -m "Update ${{ inputs.report }} Allure report"
+            git commit \
+              -m "Update ${{ inputs.report }} Allure report from run ${{ inputs.run_id }}"
+
             git push origin allure-pages-data
           fi
 

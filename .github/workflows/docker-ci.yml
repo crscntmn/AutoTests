@@ -9,6 +9,7 @@ on:
 
 permissions:
   contents: read
+  actions: write
 
 jobs:
   docker-tests:
@@ -66,10 +67,12 @@ jobs:
           mkdir -p docker-results/allure-results
 
           echo "===== COPYING SUREFIRE REPORTS ====="
-          docker cp autotests:/app/target/surefire-reports/. docker-results/surefire-reports/ || true
+          docker cp autotests:/app/target/surefire-reports/. \
+            docker-results/surefire-reports/ || true
 
           echo "===== COPYING ALLURE RESULTS ====="
-          docker cp autotests:/app/allure-results/. docker-results/allure-results/ || true
+          docker cp autotests:/app/allure-results/. \
+            docker-results/allure-results/ || true
 
           echo "===== SUREFIRE REPORTS ====="
           find docker-results/surefire-reports -type f 2>/dev/null || true
@@ -96,7 +99,6 @@ jobs:
       - name: Fail workflow if tests failed
         if: steps.run-tests.outcome == 'failure'
         run: exit 1
-
 
   docker-allure-report:
     name: Generate Docker Allure Report
@@ -146,7 +148,10 @@ jobs:
       - name: Verify Docker Allure Report
         run: |
           echo "===== DOCKER ALLURE REPORT ====="
-          find docker-allure-report -maxdepth 2 -type f | head -50
+
+          find docker-allure-report \
+            -maxdepth 2 \
+            -type f | head -50
 
           test -f docker-allure-report/index.html
 
@@ -157,9 +162,15 @@ jobs:
           path: docker-allure-report/
           if-no-files-found: error
 
+      - name: Trigger Allure Pages
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          echo "Triggering Allure Pages..."
+          echo "Docker CI run ID: ${{ github.run_id }}"
 
-      - name: Publish Docker Allure
-        uses: ./.github/workflows/allure-pages.yml
-        with:
-          report: docker
-          run_id: ${{ github.run_id }}
+          gh workflow run allure-pages.yml \
+            --repo "${{ github.repository }}" \
+            --ref develop \
+            -f report=docker \
+            -f run_id="${{ github.run_id }}"

@@ -27,6 +27,7 @@ on:
 
 permissions:
   contents: read
+  actions: write
 
 jobs:
   test:
@@ -77,7 +78,6 @@ jobs:
           path: allure-results/
           if-no-files-found: error
 
-
   selenium-allure-report:
     name: Generate Selenium Allure Report
     runs-on: ubuntu-latest
@@ -97,9 +97,6 @@ jobs:
           echo "===== SELENIUM ALLURE RESULTS ====="
           find allure-results -type f
 
-          echo "===== FILE COUNT ====="
-          find allure-results -type f | wc -l
-
       - name: Set up Java
         uses: actions/setup-java@v5
         with:
@@ -113,10 +110,6 @@ jobs:
 
           tar -xzf allure.tgz
 
-      - name: Check Allure version
-        run: |
-          ./allure-2.34.1/bin/allure --version
-
       - name: Generate Selenium Allure Report
         run: |
           ./allure-2.34.1/bin/allure generate \
@@ -126,9 +119,6 @@ jobs:
 
       - name: Verify Selenium Allure Report
         run: |
-          echo "===== SELENIUM ALLURE REPORT ====="
-          find selenium-allure-report -maxdepth 2 -type f | head -50
-
           test -f selenium-allure-report/index.html
 
       - name: Upload Selenium Allure Report
@@ -138,9 +128,15 @@ jobs:
           path: selenium-allure-report/
           if-no-files-found: error
 
+      - name: Trigger Allure Pages
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          echo "Triggering Allure Pages..."
+          echo "CI run ID: ${{ github.run_id }}"
 
-      - name: Publish Selenium Allure
-        uses: ./.github/workflows/allure-pages.yml
-        with:
-          report: selenium
-          run_id: ${{ github.run_id }}
+          gh workflow run allure-pages.yml \
+            --repo "${{ github.repository }}" \
+            --ref develop \
+            -f report=selenium \
+            -f run_id="${{ github.run_id }}"
