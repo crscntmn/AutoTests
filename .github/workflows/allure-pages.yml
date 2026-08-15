@@ -60,14 +60,13 @@ jobs:
           github-token: ${{ github.token }}
 
       - name: Show downloaded reports
-        shell: bash
         run: |
           echo "===== SELENIUM ARTIFACTS ====="
-          find downloaded-selenium -maxdepth 4 -type f | sort | head -100
+          find downloaded-selenium -type f | sed -n '1,100p'
 
           echo ""
-          echo "===== DOCKER ARTIFACT ====="
-          find downloaded-docker -maxdepth 3 -type f | sort | head -100
+          echo "===== DOCKER ARTIFACTS ====="
+          find downloaded-docker -type f | sed -n '1,100p'
 
       - name: Prepare Selenium report pages
         shell: bash
