@@ -1,18 +1,13 @@
 name: Allure Pages
 
 on:
-  workflow_run:
-    workflows:
-      - Selenium CI
-      - Docker Selenium CI
-    types:
-      - completed
+  push:
     branches:
       - develop
 
 permissions:
   actions: read
-  contents: write
+  contents: read
   pages: write
   id-token: write
 
@@ -21,138 +16,134 @@ concurrency:
   cancel-in-progress: false
 
 jobs:
-  publish:
-    name: Publish Allure Reports
+  publish-allure:
+    name: Publish Selenium and Docker Allure Reports
     runs-on: ubuntu-latest
 
-    if: github.event.workflow_run.conclusion == 'success'
-
     steps:
-      # ============================================================
-      # 1. Берём текущие опубликованные отчёты из отдельной ветки
-      # ============================================================
 
-      - name: Checkout Allure data branch
-        uses: actions/checkout@v4
-        with:
-          ref: allure-pages-data
-          fetch-depth: 0
+      # ==========================================================
+      # 1. Подготавливаем директории
+      # ==========================================================
 
-      # ============================================================
-      # 2. Информация о CI, который запустил этот workflow
-      # ============================================================
-
-      - name: Show triggering workflow
+      - name: Prepare reports directory
         run: |
-          echo "Workflow: ${{ github.event.workflow_run.name }}"
-          echo "Run ID: ${{ github.event.workflow_run.id }}"
-          echo "Branch: ${{ github.event.workflow_run.head_branch }}"
-          echo "Commit: ${{ github.event.workflow_run.head_sha }}"
-
-      # ============================================================
-      # 3. Подготавливаем директории
-      # ============================================================
-
-      - name: Prepare report directories
-        run: |
-          mkdir -p selenium
-          mkdir -p docker
-
-      # ============================================================
-      # 4. Если завершился Selenium CI —
-      #    скачиваем ЕГО конкретный Allure report
-      # ============================================================
-
-      - name: Download Selenium Allure report
-        if: github.event.workflow_run.name == 'Selenium CI'
-        uses: actions/download-artifact@v6
-        with:
-          name: selenium-allure-report
-          path: selenium
-          run-id: ${{ github.event.workflow_run.id }}
-          github-token: ${{ github.token }}
-
-      # ============================================================
-      # 5. Если завершился Docker CI —
-      #    скачиваем ЕГО конкретный Allure report
-      # ============================================================
-
-      - name: Download Docker Allure report
-        if: github.event.workflow_run.name == 'Docker Selenium CI'
-        uses: actions/download-artifact@v6
-        with:
-          name: docker-allure-report
-          path: docker
-          run-id: ${{ github.event.workflow_run.id }}
-          github-token: ${{ github.token }}
-
-      # ============================================================
-      # 6. Проверяем скачанный Selenium report
-      # ============================================================
-
-      - name: Verify Selenium report
-        if: github.event.workflow_run.name == 'Selenium CI'
-        run: |
-          echo "===== SELENIUM REPORT ====="
-
-          find selenium -maxdepth 2 -type f | head -30
-
-          test -f selenium/index.html
-
-      # ============================================================
-      # 7. Проверяем скачанный Docker report
-      # ============================================================
-
-      - name: Verify Docker report
-        if: github.event.workflow_run.name == 'Docker Selenium CI'
-        run: |
-          echo "===== DOCKER REPORT ====="
-
-          find docker -maxdepth 2 -type f | head -30
-
-          test -f docker/index.html
-
-      # ============================================================
-      # 8. Показываем, что уже хранится в data branch
-      # ============================================================
-
-      - name: Show stored reports
-        run: |
-          echo "===== STORED SELENIUM REPORT ====="
-
-          if [ -f selenium/index.html ]; then
-            echo "Selenium report exists."
-          else
-            echo "Selenium report does not exist yet."
-          fi
-
-          echo ""
-
-          echo "===== STORED DOCKER REPORT ====="
-
-          if [ -f docker/index.html ]; then
-            echo "Docker report exists."
-          else
-            echo "Docker report does not exist yet."
-          fi
-
-      # ============================================================
-      # 9. Формируем Pages
-      # ============================================================
-
-      - name: Prepare Pages directory
-        run: |
-          rm -rf pages
-
           mkdir -p pages/selenium
           mkdir -p pages/docker
 
-          cp -r selenium/. pages/selenium/ 2>/dev/null || true
-          cp -r docker/. pages/docker/ 2>/dev/null || true
+      # ==========================================================
+      # 2. Находим последний успешный Selenium CI для develop
+      # ==========================================================
 
-      # ============================================================
-      # 10. Главная страница
-      # ============================================================
+      - name: Find latest successful Selenium CI run
+        id: selenium-run
+        env:
+          GH_TOKEN: ${{ github.token }}
+
+        run: |
+          RUN_ID=$(gh run list \
+            --repo "${{ github.repository }}" \
+            --workflow "ci.yml" \
+            --branch develop \
+            --status success \
+            --limit 1 \
+            --json databaseId \
+            --jq '.[0].databaseId')
+
+          echo "Selenium CI run: $RUN_ID"
+
+          if [ -z "$RUN_ID" ]; then
+            echo "Selenium CI successful run not found"
+            exit 1
+          fi
+
+          echo "run_id=$RUN_ID" >> "$GITHUB_OUTPUT"
+
+      # ==========================================================
+      # 3. Находим последний успешный Docker CI для develop
+      # ==========================================================
+
+      - name: Find latest successful Docker Selenium CI run
+        id: docker-run
+        env:
+          GH_TOKEN: ${{ github.token }}
+
+        run: |
+          RUN_ID=$(gh run list \
+            --repo "${{ github.repository }}" \
+            --workflow "docker-ci.yml" \
+            --branch develop \
+            --status success \
+            --limit 1 \
+            --json databaseId \
+            --jq '.[0].databaseId')
+
+          echo "Docker Selenium CI run: $RUN_ID"
+
+          if [ -z "$RUN_ID" ]; then
+            echo "Docker Selenium CI successful run not found"
+            exit 1
+          fi
+
+          echo "run_id=$RUN_ID" >> "$GITHUB_OUTPUT"
+
+      # ==========================================================
+      # 4. Скачиваем Selenium report
+      # ==========================================================
+
+      - name: Download Selenium Allure report
+        env:
+          GH_TOKEN: ${{ github.token }}
+
+        run: |
+          gh run download \
+            "${{ steps.selenium-run.outputs.run_id }}" \
+            --repo "${{ github.repository }}" \
+            --name selenium-allure-report \
+            --dir pages/selenium
+
+      # ==========================================================
+      # 5. Скачиваем Docker report
+      # ==========================================================
+
+      - name: Download Docker Allure report
+        env:
+          GH_TOKEN: ${{ github.token }}
+
+        run: |
+          gh run download \
+            "${{ steps.docker-run.outputs.run_id }}" \
+            --repo "${{ github.repository }}" \
+            --name docker-allure-report \
+            --dir pages/docker
+
+      # ==========================================================
+      # 6. Проверяем отчёты
+      # ==========================================================
+
+      - name: Verify Selenium report
+        run: |
+          echo "===== SELENIUM REPORT ====="
+
+          find pages/selenium \
+            -maxdepth 2 \
+            -type f | head -30
+
+          test -f pages/selenium/index.html
+
+      - name: Verify Docker report
+        run: |
+          echo "===== DOCKER REPORT ====="
+
+          find pages/docker \
+            -maxdepth 2 \
+            -type f | head -30
+
+          test -f pages/docker/index.html
+
+      # ==========================================================
+      # 7. Создаём главную страницу
+      # ==========================================================
 
       - name: Create main index.html
         run: |
@@ -218,7 +209,6 @@ jobs:
 
               .report {
                 display: block;
-
                 padding: 30px;
 
                 background: white;
@@ -315,75 +305,31 @@ jobs:
           </html>
           EOF
 
-      # ============================================================
-      # 11. Проверяем структуру Pages
-      # ============================================================
+      # ==========================================================
+      # 8. Показываем структуру
+      # ==========================================================
 
       - name: Show Pages structure
         run: |
           echo "===== PAGES STRUCTURE ====="
 
-          find pages -maxdepth 2 -type f | sort | head -100
+          find pages \
+            -maxdepth 2 \
+            -type f | sort | head -100
 
           echo ""
-          echo "===== SELENIUM ====="
+          echo "===== SELENIUM INDEX ====="
 
-          if [ -f pages/selenium/index.html ]; then
-            ls -lh pages/selenium/index.html
-          else
-            echo "Selenium report is not available."
-          fi
+          ls -lh pages/selenium/index.html
 
           echo ""
-          echo "===== DOCKER ====="
+          echo "===== DOCKER INDEX ====="
 
-          if [ -f pages/docker/index.html ]; then
-            ls -lh pages/docker/index.html
-          else
-            echo "Docker report is not available."
-          fi
+          ls -lh pages/docker/index.html
 
-      # ============================================================
-      # 12. Обновляем allure-pages-data
-      # ============================================================
-
-      - name: Update Allure data branch
-        run: |
-          rm -rf selenium
-          rm -rf docker
-
-          mkdir -p selenium
-          mkdir -p docker
-
-          cp -r pages/selenium/. selenium/ 2>/dev/null || true
-          cp -r pages/docker/. docker/ 2>/dev/null || true
-
-      # ============================================================
-      # 13. Commit только в allure-pages-data
-      # ============================================================
-
-      - name: Configure Git
-        run: |
-          git config user.name "github-actions[bot]"
-          git config user.email \
-            "41898282+github-actions[bot]@users.noreply.github.com"
-
-      - name: Commit reports
-        run: |
-          git add selenium docker
-
-          if git diff --cached --quiet; then
-            echo "No report changes."
-          else
-            git commit \
-              -m "Update ${{ github.event.workflow_run.name }} report #${{ github.event.workflow_run.id }}"
-
-            git push origin allure-pages-data
-          fi
-
-      # ============================================================
-      # 14. GitHub Pages
-      # ============================================================
+      # ==========================================================
+      # 9. GitHub Pages
+      # ==========================================================
 
       - name: Setup Pages
         uses: actions/configure-pages@v5

@@ -54,11 +54,7 @@ jobs:
           cache: maven
 
       - name: Run all tests
-        if: >
-          github.event_name == 'push' ||
-          github.event_name == 'schedule' ||
-          github.event_name == 'pull_request' ||
-          inputs.suite == 'all'
+        if: github.event_name == 'push' || github.event_name == 'schedule' || inputs.suite == 'all' || github.event_name == 'pull_request'
         run: mvn clean test
 
       - name: Run tagged tests
@@ -71,7 +67,6 @@ jobs:
         with:
           name: surefire-reports-java-${{ matrix.java }}
           path: target/surefire-reports/
-          if-no-files-found: warn
 
       - name: Upload Allure results
         if: always()
@@ -79,17 +74,12 @@ jobs:
         with:
           name: allure-results-java-${{ matrix.java }}
           path: allure-results/
-          if-no-files-found: error
-
 
   selenium-allure-report:
     name: Generate Selenium Allure Report
-
     runs-on: ubuntu-latest
-
     needs: test
-
-    if: always() && needs.test.result != 'cancelled'
+    if: always()
 
     steps:
       - name: Download Selenium Allure results
@@ -102,13 +92,7 @@ jobs:
       - name: Show Allure results
         run: |
           echo "===== SELENIUM ALLURE RESULTS ====="
-
           find allure-results -type f
-
-          echo ""
-          echo "===== FILE COUNT ====="
-
-          find allure-results -type f | wc -l
 
       - name: Set up Java
         uses: actions/setup-java@v5
@@ -123,10 +107,6 @@ jobs:
 
           tar -xzf allure.tgz
 
-      - name: Check Allure version
-        run: |
-          ./allure-2.34.1/bin/allure --version
-
       - name: Generate Selenium Allure Report
         run: |
           ./allure-2.34.1/bin/allure generate \
@@ -136,10 +116,6 @@ jobs:
 
       - name: Verify Selenium Allure Report
         run: |
-          echo "===== SELENIUM ALLURE REPORT ====="
-
-          find selenium-allure-report -maxdepth 2 -type f | head -50
-
           test -f selenium-allure-report/index.html
 
       - name: Upload Selenium Allure Report
