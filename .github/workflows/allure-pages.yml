@@ -35,7 +35,7 @@ jobs:
       - name: Checkout reports data branch
         uses: actions/checkout@v4
         with:
-          ref: allure-pages-data
+          ref: develop
           fetch-depth: 0
 
       - name: Show current reports
