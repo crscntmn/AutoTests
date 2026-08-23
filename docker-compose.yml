@@ -1,25 +1,38 @@
 services:
 
-  chrome:
-    image: selenium/standalone-chrome:latest
-    container_name: chrome
+  selenium:
+    image: ${SELENIUM_IMAGE:-selenium/standalone-chrome:latest}
+
+    container_name: selenium
+
     ports:
       - "4444:4444"
+
     shm_size: "2gb"
 
     healthcheck:
-      test: ["CMD-SHELL", "curl -f http://localhost:4444/status || exit 1"]
+      test:
+        [
+          "CMD-SHELL",
+          "curl -f http://localhost:4444/status || exit 1"
+        ]
+
       interval: 5s
       timeout: 5s
       retries: 20
       start_period: 10s
 
+
   autotests:
     build: .
+
     container_name: autotests
 
     environment:
-      SELENIUM_REMOTE_URL: http://chrome:4444/wd/hub
+
+      SELENIUM_REMOTE_URL: http://selenium:4444/wd/hub
+
+      BROWSER: ${BROWSER:-chrome}
 
       PASSWORD: ${PASSWORD}
       SHORT_PASSWORD: ${SHORT_PASSWORD}
@@ -29,7 +42,7 @@ services:
       TEST_GROUP: ${TEST_GROUP:-}
 
     depends_on:
-      chrome:
+      selenium:
         condition: service_healthy
 
     command: >

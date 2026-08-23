@@ -1,19 +1,19 @@
 package base;
 
 import auto.tests.config.Config;
-import auto.tests.testdata.TestData;
-import io.github.bonigarcia.wdm.WebDriverManager;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.openqa.selenium.Dimension;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.chrome.ChromeDriver;
-import org.openqa.selenium.remote.RemoteWebDriver;
-import org.openqa.selenium.support.ui.WebDriverWait;
 import org.openqa.selenium.chrome.ChromeOptions;
-import java.net.MalformedURLException;
+import org.openqa.selenium.edge.EdgeDriver;
+import org.openqa.selenium.edge.EdgeOptions;
+import org.openqa.selenium.firefox.FirefoxDriver;
+import org.openqa.selenium.firefox.FirefoxOptions;
+import org.openqa.selenium.remote.RemoteWebDriver;
+
 import java.net.URL;
-import java.time.Duration;
 
 public class BaseTest {
 
@@ -22,33 +22,104 @@ public class BaseTest {
     @BeforeEach
     void openPage() throws Exception {
 
-        ChromeOptions options = new ChromeOptions();
-
-        // Headless для CI и Docker
-        if (System.getenv("CI") != null || System.getenv("SELENIUM_REMOTE_URL") != null) {
-            options.addArguments("--headless=new");
-            options.addArguments("--no-sandbox");
-            options.addArguments("--disable-dev-shm-usage");
-        }
-
+        String browser = System.getenv().getOrDefault("BROWSER", "chrome").toLowerCase();
         String remoteUrl = System.getenv("SELENIUM_REMOTE_URL");
+        boolean ci = System.getenv("CI") != null;
 
         if (remoteUrl != null && !remoteUrl.isBlank()) {
-            // Docker / Selenium Grid
-            driver = new RemoteWebDriver(new URL(remoteUrl), options);
+            driver = createRemoteDriver(browser, remoteUrl);
         } else {
-            // Локальный запуск
-            WebDriverManager.chromedriver().setup();
-            driver = new ChromeDriver(options);
+            driver = createLocalDriver(browser, ci);
         }
 
         driver.manage().window().setSize(new Dimension(1920, 1080));
         driver.get(Config.URL);
     }
 
+    private WebDriver createLocalDriver(String browser, boolean ci) {
+
+        switch (browser) {
+
+            case "firefox":
+
+                FirefoxOptions firefoxOptions = new FirefoxOptions();
+
+                if (ci) {
+                    firefoxOptions.addArguments("-headless");
+                }
+
+                return new FirefoxDriver(firefoxOptions);
+
+            case "edge":
+
+                EdgeOptions edgeOptions = new EdgeOptions();
+
+                if (ci) {
+                    edgeOptions.addArguments("--headless=new");
+                    edgeOptions.addArguments("--no-sandbox");
+                    edgeOptions.addArguments("--disable-dev-shm-usage");
+                }
+
+                return new EdgeDriver(edgeOptions);
+
+            case "chrome":
+
+            default:
+
+                ChromeOptions chromeOptions = new ChromeOptions();
+
+                if (ci) {
+                    chromeOptions.addArguments("--headless=new");
+                    chromeOptions.addArguments("--no-sandbox");
+                    chromeOptions.addArguments("--disable-dev-shm-usage");
+                }
+
+                return new ChromeDriver(chromeOptions);
+        }
+    }
+
+    private WebDriver createRemoteDriver(
+            String browser,
+            String remoteUrl
+    ) throws Exception {
+
+        switch (browser) {
+
+            case "firefox":
+
+                FirefoxOptions firefoxOptions = new FirefoxOptions();
+
+                return new RemoteWebDriver(
+                        new URL(remoteUrl),
+                        firefoxOptions
+                );
+
+            case "edge":
+
+                EdgeOptions edgeOptions = new EdgeOptions();
+
+                return new RemoteWebDriver(
+                        new URL(remoteUrl),
+                        edgeOptions
+                );
+
+            case "chrome":
+
+            default:
+
+                ChromeOptions chromeOptions = new ChromeOptions();
+
+                return new RemoteWebDriver(
+                        new URL(remoteUrl),
+                        chromeOptions
+                );
+        }
+    }
+
     @AfterEach
     void endTest() {
-        if (driver != null){
+
+        if (driver != null) {
             driver.quit();
         }
     }
