@@ -95,7 +95,7 @@ jobs:
       - selenium
       - docker
 
-    if: always() && github.event_name != 'pull_request'
+    if: always()
 
     uses: ./.github/workflows/allure-pages.yml
 
