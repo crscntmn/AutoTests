@@ -259,7 +259,7 @@ jobs:
                   if not java_dir.is_dir():
                       continue
 
-                  java = java_dir.name
+                  java = java_dir.name.removeprefix("java")
 
                   html += f"""
               <div class="java">
