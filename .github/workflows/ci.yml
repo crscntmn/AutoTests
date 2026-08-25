@@ -20,7 +20,7 @@ jobs:
 
   selenium-tests:
 
-    name: ${{ matrix.os-name }} / Java ${{ matrix.java }} / ${{ matrix.browser }}
+    name: ${{ matrix.os-name }} | Java ${{ matrix.java }} | ${{ matrix.browser }}
 
     runs-on: ${{ matrix.os }}
 

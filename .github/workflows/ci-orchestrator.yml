@@ -7,6 +7,10 @@ on:
       - main
       - develop
 
+  pull_request:
+    branches:
+      - main
+
   schedule:
     - cron: '0 0 * * *'
 
@@ -50,6 +54,37 @@ jobs:
 
     secrets: inherit
 
+
+  ci-passed:
+
+    name: CI Tests Passed
+
+    needs:
+      - selenium
+      - docker
+
+    if: always()
+
+    runs-on: ubuntu-latest
+
+    steps:
+
+      - name: Check test results
+        run: |
+          echo "Selenium result: ${{ needs.selenium.result }}"
+          echo "Docker result: ${{ needs.docker.result }}"
+
+          if [ "${{ needs.selenium.result }}" != "success" ]; then
+            echo "Selenium CI failed."
+            exit 1
+          fi
+
+          if [ "${{ needs.docker.result }}" != "success" ]; then
+            echo "Docker CI failed."
+            exit 1
+          fi
+
+          echo "All CI tests passed."
 
   publish:
 
