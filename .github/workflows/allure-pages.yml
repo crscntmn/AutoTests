@@ -259,7 +259,8 @@ jobs:
                   if not java_dir.is_dir():
                       continue
 
-                  java = java_dir.name.removeprefix("java")
+                  java_dir_name = java_dir.name
+                  java = java_dir_name.removeprefix("java-")
 
                   html += f"""
               <div class="java">
@@ -277,7 +278,7 @@ jobs:
                       browser = browser_dir.name
 
                       html += f"""
-                  <a href="./{escape(os_name)}/{escape(java)}/{escape(browser)}/">
+                  <a href="./{escape(os_name)}/{escape(java_dir_name)}/{escape(browser)}/">
                     {escape(browser)}
                   </a>
           """
