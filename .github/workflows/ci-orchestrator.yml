@@ -7,10 +7,6 @@ on:
       - main
       - develop
 
-  pull_request:
-    branches:
-      - main
-
   schedule:
     - cron: '0 0 * * *'
 
@@ -35,122 +31,8 @@ permissions:
 jobs:
 
   selenium:
-    name: ${{ matrix.os_name }}
 
-    strategy:
-      fail-fast: false
-
-      matrix:
-        include:
-
-          - os: ubuntu-latest
-            os_name: ubuntu
-            java: '17'
-            browser: chrome
-            config_name: ubuntu / Java 17 / Chrome
-
-          - os: ubuntu-latest
-            os_name: ubuntu
-            java: '17'
-            browser: firefox
-            config_name: ubuntu / Java 17 / Firefox
-
-          - os: ubuntu-latest
-            os_name: ubuntu
-            java: '17'
-            browser: edge
-            config_name: ubuntu / Java 17 / Edge
-
-          - os: ubuntu-latest
-            os_name: ubuntu
-            java: '21'
-            browser: chrome
-            config_name: ubuntu / Java 21 / Chrome
-
-          - os: ubuntu-latest
-            os_name: ubuntu
-            java: '21'
-            browser: firefox
-            config_name: ubuntu / Java 21 / Firefox
-
-          - os: ubuntu-latest
-            os_name: ubuntu
-            java: '21'
-            browser: edge
-            config_name: ubuntu / Java 21 / Edge
-
-          - os: windows-latest
-            os_name: windows
-            java: '17'
-            browser: chrome
-            config_name: windows / Java 17 / Chrome
-
-          - os: windows-latest
-            os_name: windows
-            java: '17'
-            browser: firefox
-            config_name: windows / Java 17 / Firefox
-
-          - os: windows-latest
-            os_name: windows
-            java: '17'
-            browser: edge
-            config_name: windows / Java 17 / Edge
-
-          - os: windows-latest
-            os_name: windows
-            java: '21'
-            browser: chrome
-            config_name: windows / Java 21 / Chrome
-
-          - os: windows-latest
-            os_name: windows
-            java: '21'
-            browser: firefox
-            config_name: windows / Java 21 / Firefox
-
-          - os: windows-latest
-            os_name: windows
-            java: '21'
-            browser: edge
-            config_name: windows / Java 21 / Edge
-
-          - os: macos-latest
-            os_name: macOS
-            java: '17'
-            browser: chrome
-            config_name: macOS / Java 17 / Chrome
-
-          - os: macos-latest
-            os_name: macOS
-            java: '17'
-            browser: firefox
-            config_name: macOS / Java 17 / Firefox
-
-          - os: macos-latest
-            os_name: macOS
-            java: '17'
-            browser: edge
-            config_name: macOS / Java 17 / Edge
-
-          - os: macos-latest
-            os_name: macOS
-            java: '21'
-            browser: chrome
-            config_name: macOS / Java 21 / Chrome
-
-          - os: macos-latest
-            os_name: macOS
-            java: '21'
-            browser: firefox
-            config_name: macOS / Java 21 / Firefox
-
-          - os: macos-latest
-            os_name: macOS
-            java: '21'
-            browser: edge
-            config_name: macOS / Java 21 / Edge
-
+    name: Selenium CI
 
     uses: ./.github/workflows/ci.yml
 
@@ -158,11 +40,6 @@ jobs:
 
     with:
       suite: ${{ inputs.suite || 'all' }}
-      os: ${{ matrix.os }}
-      os_name: ${{ matrix.os_name }}
-      java: ${{ matrix.java }}
-      browser: ${{ matrix.browser }}
-      config_name: ${{ matrix.config_name }}
 
 
   docker:
@@ -173,37 +50,6 @@ jobs:
 
     secrets: inherit
 
-
-  ci-passed:
-
-    name: CI Tests Passed
-
-    needs:
-      - selenium
-      - docker
-
-    if: always()
-
-    runs-on: ubuntu-latest
-
-    steps:
-
-      - name: Check test results
-        run: |
-          echo "Selenium result: ${{ needs.selenium.result }}"
-          echo "Docker result: ${{ needs.docker.result }}"
-
-          if [ "${{ needs.selenium.result }}" != "success" ]; then
-            echo "Selenium CI failed."
-            exit 1
-          fi
-
-          if [ "${{ needs.docker.result }}" != "success" ]; then
-            echo "Docker CI failed."
-            exit 1
-          fi
-
-          echo "All CI tests passed."
 
   publish:
 
@@ -218,8 +64,12 @@ jobs:
     uses: ./.github/workflows/allure-pages.yml
 
     with:
-      selenium_run_id: ${{ needs.selenium.outputs.run_id }}
-      docker_run_id: ${{ needs.docker.outputs.run_id }}
+
+      selenium_run_id:
+        ${{ needs.selenium.outputs.run_id }}
+
+      docker_run_id:
+        ${{ needs.docker.outputs.run_id }}
 
     permissions:
       actions: read

@@ -8,71 +8,127 @@ on:
         required: true
         type: string
 
-      os:
-        description: Operating system
-        required: true
-        type: string
-
-      os_name:
-        description: Operating system display name
-        required: true
-        type: string
-
-      java:
-        description: Java version
-        required: true
-        type: string
-
-      browser:
-        description: Browser
-        required: true
-        type: string
-
-      config_name:
-        description: Full configuration name
-        required: true
-        type: string
-
-
     outputs:
-
       run_id:
         description: Selenium CI workflow run ID
-        value: ${{ jobs.selenium-tests.outputs.run_id }}
-
+        value: ${{ github.run_id }}
 
 permissions:
   contents: read
 
-
 jobs:
 
   selenium-tests:
-    name: ${{ inputs.config_name }}
 
-    runs-on: ${{ inputs.os }}
+    name: ${{ matrix.os-name }} | Java ${{ matrix.java }} | ${{ matrix.browser }}
 
-    outputs:
+    runs-on: ${{ matrix.os }}
 
-      run_id: ${{ steps.workflow-run-id.outputs.run_id }}
+    strategy:
+      fail-fast: false
+
+      matrix:
+        include:
+          - os: ubuntu-latest
+            os-name: ubuntu
+            java: 17
+            browser: chrome
+
+          - os: ubuntu-latest
+            os-name: ubuntu
+            java: 17
+            browser: firefox
+
+          - os: ubuntu-latest
+            os-name: ubuntu
+            java: 17
+            browser: edge
+
+          - os: ubuntu-latest
+            os-name: ubuntu
+            java: 21
+            browser: chrome
+
+          - os: ubuntu-latest
+            os-name: ubuntu
+            java: 21
+            browser: firefox
+
+          - os: ubuntu-latest
+            os-name: ubuntu
+            java: 21
+            browser: edge
+
+          - os: windows-latest
+            os-name: windows
+            java: 17
+            browser: chrome
+
+          - os: windows-latest
+            os-name: windows
+            java: 17
+            browser: firefox
+
+          - os: windows-latest
+            os-name: windows
+            java: 17
+            browser: edge
+
+          - os: windows-latest
+            os-name: windows
+            java: 21
+            browser: chrome
+
+          - os: windows-latest
+            os-name: windows
+            java: 21
+            browser: firefox
+
+          - os: windows-latest
+            os-name: windows
+            java: 21
+            browser: edge
+
+          - os: macos-latest
+            os-name: macos
+            java: 17
+            browser: chrome
+
+          - os: macos-latest
+            os-name: macos
+            java: 17
+            browser: firefox
+
+          - os: macos-latest
+            os-name: macos
+            java: 17
+            browser: edge
+
+          - os: macos-latest
+            os-name: macos
+            java: 21
+            browser: chrome
+
+          - os: macos-latest
+            os-name: macos
+            java: 21
+            browser: firefox
+
+          - os: macos-latest
+            os-name: macos
+            java: 21
+            browser: edge
 
 
     env:
-
       PASSWORD: ${{ secrets.PASSWORD }}
       SHORT_PASSWORD: ${{ secrets.SHORT_PASSWORD }}
       INVALIDATE_PASSWORD: ${{ secrets.INVALIDATE_PASSWORD }}
       WRONG_PASSWORD: ${{ secrets.WRONG_PASSWORD }}
 
-      BROWSER: ${{ inputs.browser }}
-
+      BROWSER: ${{ matrix.browser }}
 
     steps:
-      - name: Get workflow run ID
-        id: workflow-run-id
-        shell: bash
-        run: |
-          echo "run_id=${{ github.run_id }}" >> "$GITHUB_OUTPUT"
 
       - name: Checkout repository
         uses: actions/checkout@v6
@@ -81,16 +137,15 @@ jobs:
         uses: actions/setup-java@v5
         with:
           distribution: temurin
-          java-version: ${{ inputs.java }}
+          java-version: ${{ matrix.java }}
           cache: maven
 
       - name: Show environment
         shell: bash
         run: |
-          echo "Configuration: ${{ inputs.config_name }}"
-          echo "OS: ${{ inputs.os_name }}"
-          echo "Java: ${{ inputs.java }}"
-          echo "Browser: ${{ inputs.browser }}"
+          echo "OS: ${{ matrix.os-name }}"
+          echo "Java: ${{ matrix.java }}"
+          echo "Browser: ${{ matrix.browser }}"
 
           java -version
           mvn -version
@@ -107,7 +162,7 @@ jobs:
         if: always()
         uses: actions/upload-artifact@v6
         with:
-          name: surefire-${{ inputs.os_name }}-java-${{ inputs.java }}-${{ inputs.browser }}
+          name: surefire-${{ matrix.os-name }}-java-${{ matrix.java }}-${{ matrix.browser }}
           path: target/surefire-reports/
           if-no-files-found: warn
 
@@ -159,6 +214,6 @@ jobs:
         if: always()
         uses: actions/upload-artifact@v6
         with:
-          name: selenium-allure-${{ inputs.os_name }}-java-${{ inputs.java }}-${{ inputs.browser }}
+          name: selenium-allure-${{ matrix.os-name }}-java-${{ matrix.java }}-${{ matrix.browser }}
           path: allure-report/
           if-no-files-found: error
