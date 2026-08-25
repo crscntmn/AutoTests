@@ -1,135 +1,205 @@
 name: Selenium CI
 
-
 on:
-
   workflow_call:
-
     inputs:
-
       suite:
         description: Test suite
         required: true
         type: string
 
-      os:
-        description: Operating system
-        required: true
-        type: string
-
-      os_name:
-        description: Operating system name
-        required: true
-        type: string
-
-      java:
-        description: Java version
-        required: true
-        type: number
-
-      browser:
-        description: Browser
-        required: true
-        type: string
-
+    outputs:
+      run_id:
+        description: Selenium CI workflow run ID
+        value: ${{ github.run_id }}
 
 permissions:
   contents: read
-
 
 jobs:
 
   selenium-tests:
 
-    name: Selenium tests
+    name: ${{ matrix.config_name }}
 
-    runs-on: ${{ inputs.os }}
+    runs-on: ${{ matrix.os }}
+
+    strategy:
+      fail-fast: false
+
+      matrix:
+        include:
+          - os: ubuntu-latest
+            os-name: ubuntu
+            java: 17
+            browser: chrome
+            config_name: ubuntu / Java 17 / Chrome
+
+          - os: ubuntu-latest
+            os-name: ubuntu
+            java: 17
+            browser: firefox
+            config_name: ubuntu / Java 17 / Firefox
+
+          - os: ubuntu-latest
+            os-name: ubuntu
+            java: 17
+            browser: edge
+            config_name: ubuntu / Java 17 / Edge
+
+          - os: ubuntu-latest
+            os-name: ubuntu
+            java: 21
+            browser: chrome
+            config_name: ubuntu / Java 21 / Chrome
+
+          - os: ubuntu-latest
+            os-name: ubuntu
+            java: 21
+            browser: firefox
+            config_name: ubuntu / Java 21 / Firefox
+
+          - os: ubuntu-latest
+            os-name: ubuntu
+            java: 21
+            browser: edge
+            config_name: ubuntu / Java 21 / Edge
+
+          - os: windows-latest
+            os-name: windows
+            java: 17
+            browser: chrome
+            config_name: windows / Java 17 / Chrome
+
+          - os: windows-latest
+            os-name: windows
+            java: 17
+            browser: firefox
+            config_name: windows / Java 17 / Firefox
+
+          - os: windows-latest
+            os-name: windows
+            java: 17
+            browser: edge
+            config_name: windows / Java 17 / Edge
+
+          - os: windows-latest
+            os-name: windows
+            java: 21
+            browser: chrome
+            config_name: windows / Java 21 / Chrome
+
+          - os: windows-latest
+            os-name: windows
+            java: 21
+            browser: firefox
+            config_name: windows / Java 21 / Firefox
+
+          - os: windows-latest
+            os-name: windows
+            java: 21
+            browser: edge
+            config_name: windows / Java 21 / Edge
+
+          - os: macos-latest
+            os-name: macos
+            java: 17
+            browser: chrome
+            config_name: macOS / Java 17 / Chrome
+
+          - os: macos-latest
+            os-name: macos
+            java: 17
+            browser: firefox
+            config_name: macOS / Java 17 / Firefox
+
+          - os: macos-latest
+            os-name: macos
+            java: 17
+            browser: edge
+            config_name: macOS / Java 17 / Edge
+
+          - os: macos-latest
+            os-name: macos
+            java: 21
+            browser: chrome
+            config_name: macOS / Java 21 / Chrome
+
+          - os: macos-latest
+            os-name: macos
+            java: 21
+            browser: firefox
+            config_name: macOS / Java 21 / Firefox
+
+          - os: macos-latest
+            os-name: macos
+            java: 21
+            browser: edge
+            config_name: macOS / Java 21 / Edge
 
 
     env:
-
       PASSWORD: ${{ secrets.PASSWORD }}
       SHORT_PASSWORD: ${{ secrets.SHORT_PASSWORD }}
       INVALIDATE_PASSWORD: ${{ secrets.INVALIDATE_PASSWORD }}
       WRONG_PASSWORD: ${{ secrets.WRONG_PASSWORD }}
 
-      BROWSER: ${{ inputs.browser }}
-
+      BROWSER: ${{ matrix.browser }}
 
     steps:
 
       - name: Checkout repository
         uses: actions/checkout@v6
 
-
       - name: Set up Java
         uses: actions/setup-java@v5
         with:
-
           distribution: temurin
-          java-version: ${{ inputs.java }}
+          java-version: ${{ matrix.java }}
           cache: maven
-
 
       - name: Show environment
         shell: bash
         run: |
-
-          echo "========================================"
-          echo "OS: ${{ inputs.os_name }}"
-          echo "Java: ${{ inputs.java }}"
-          echo "Browser: ${{ inputs.browser }}"
-          echo "========================================"
+          echo "OS: ${{ matrix.os-name }}"
+          echo "Java: ${{ matrix.java }}"
+          echo "Browser: ${{ matrix.browser }}"
 
           java -version
           mvn -version
-
 
       - name: Run all tests
         if: inputs.suite == 'all'
         run: mvn clean test
 
-
       - name: Run tagged tests
         if: inputs.suite == 'smoke' || inputs.suite == 'regression'
         run: mvn clean test -Dgroups=${{ inputs.suite }}
-
 
       - name: Upload Surefire reports
         if: always()
         uses: actions/upload-artifact@v6
         with:
-
-          name: surefire-${{ inputs.os_name }}-java-${{ inputs.java }}-${{ inputs.browser }}
-
+          name: surefire-${{ matrix.os-name }}-java-${{ matrix.java }}-${{ matrix.browser }}
           path: target/surefire-reports/
-
           if-no-files-found: warn
-
 
       - name: Install Allure CLI
         if: always()
         shell: bash
         run: |
-
           curl -Lo allure.tgz \
             https://github.com/allure-framework/allure2/releases/download/2.34.1/allure-2.34.1.tgz
 
           tar -xzf allure.tgz
 
-
       - name: Generate Allure report
         if: always()
         shell: bash
         run: |
-
           rm -rf allure-report
 
-
-          if [ -d "allure-results" ] && \
-             [ "$(find allure-results -type f | wc -l)" -gt 0 ]; then
-
-            echo "Generating Allure report..."
+          if [ -d "allure-results" ] && [ "$(find allure-results -type f | wc -l)" -gt 0 ]; then
 
             ./allure-2.34.1/bin/allure generate \
               allure-results \
@@ -138,10 +208,7 @@ jobs:
 
             test -f allure-report/index.html
 
-
           else
-
-            echo "No Allure results."
 
             mkdir -p allure-report
 
@@ -161,14 +228,10 @@ jobs:
 
           fi
 
-
       - name: Upload Allure report
         if: always()
         uses: actions/upload-artifact@v6
         with:
-
-          name: selenium-allure-${{ inputs.os_name }}-java-${{ inputs.java }}-${{ inputs.browser }}
-
+          name: selenium-allure-${{ matrix.os-name }}-java-${{ matrix.java }}-${{ matrix.browser }}
           path: allure-report/
-
           if-no-files-found: error

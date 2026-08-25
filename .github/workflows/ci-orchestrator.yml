@@ -1,6 +1,5 @@
 name: CI Orchestrator
 
-
 on:
 
   push:
@@ -8,13 +7,14 @@ on:
       - main
       - develop
 
+  pull_request:
+    branches:
+      - main
 
   schedule:
     - cron: '0 0 * * *'
 
-
   workflow_dispatch:
-
     inputs:
 
       suite:
@@ -28,132 +28,23 @@ on:
           - smoke
           - regression
 
-
 permissions:
   actions: read
   contents: read
 
-
 jobs:
-
 
   selenium:
 
-    name: Selenium / ${{ matrix.os_name }} / Java ${{ matrix.java }} / ${{ matrix.browser }}
-
-    strategy:
-      fail-fast: false
-
-      matrix:
-
-        include:
-
-          - os: ubuntu-latest
-            os_name: ubuntu
-            java: 17
-            browser: chrome
-
-          - os: ubuntu-latest
-            os_name: ubuntu
-            java: 17
-            browser: firefox
-
-          - os: ubuntu-latest
-            os_name: ubuntu
-            java: 17
-            browser: edge
-
-          - os: ubuntu-latest
-            os_name: ubuntu
-            java: 21
-            browser: chrome
-
-          - os: ubuntu-latest
-            os_name: ubuntu
-            java: 21
-            browser: firefox
-
-          - os: ubuntu-latest
-            os_name: ubuntu
-            java: 21
-            browser: edge
-
-          - os: windows-latest
-            os_name: windows
-            java: 17
-            browser: chrome
-
-          - os: windows-latest
-            os_name: windows
-            java: 17
-            browser: firefox
-
-          - os: windows-latest
-            os_name: windows
-            java: 17
-            browser: edge
-
-          - os: windows-latest
-            os_name: windows
-            java: 21
-            browser: chrome
-
-          - os: windows-latest
-            os_name: windows
-            java: 21
-            browser: firefox
-
-          - os: windows-latest
-            os_name: windows
-            java: 21
-            browser: edge
-
-          - os: macos-latest
-            os_name: macos
-            java: 17
-            browser: chrome
-
-          - os: macos-latest
-            os_name: macos
-            java: 17
-            browser: firefox
-
-          - os: macos-latest
-            os_name: macos
-            java: 17
-            browser: edge
-
-          - os: macos-latest
-            os_name: macos
-            java: 21
-            browser: chrome
-
-          - os: macos-latest
-            os_name: macos
-            java: 21
-            browser: firefox
-
-          - os: macos-latest
-            os_name: macos
-            java: 21
-            browser: edge
-
+    name: Selenium CI
 
     uses: ./.github/workflows/ci.yml
 
     secrets: inherit
 
     with:
-
       suite: ${{ inputs.suite || 'all' }}
 
-      os: ${{ matrix.os }}
-
-      os_name: ${{ matrix.os_name }}
-
-      java: ${{ matrix.java }}
-
-      browser: ${{ matrix.browser }}
 
   docker:
 
@@ -162,6 +53,39 @@ jobs:
     uses: ./.github/workflows/docker-ci.yml
 
     secrets: inherit
+
+
+  ci-passed:
+
+    name: CI Tests Passed
+
+    needs:
+      - selenium
+      - docker
+
+    if: always()
+
+    runs-on: ubuntu-latest
+
+    steps:
+
+      - name: Check test results
+        run: |
+          echo "Selenium result: ${{ needs.selenium.result }}"
+          echo "Docker result: ${{ needs.docker.result }}"
+
+          if [ "${{ needs.selenium.result }}" != "success" ]; then
+            echo "Selenium CI failed."
+            exit 1
+          fi
+
+          if [ "${{ needs.docker.result }}" != "success" ]; then
+            echo "Docker CI failed."
+            exit 1
+          fi
+
+          echo "All CI tests passed."
+
 
   publish:
 
@@ -177,12 +101,13 @@ jobs:
 
     with:
 
-      selenium_run_id: ${{ github.run_id }}
+      selenium_run_id:
+        ${{ needs.selenium.outputs.run_id }}
 
-      docker_run_id: ${{ github.run_id }}
+      docker_run_id:
+        ${{ needs.docker.outputs.run_id }}
 
     permissions:
-
       actions: read
       contents: read
       pages: write
