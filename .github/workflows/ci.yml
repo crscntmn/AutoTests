@@ -8,10 +8,20 @@ on:
         required: true
         type: string
 
-    outputs:
-      run_id:
-        description: Selenium CI workflow run ID
-        value: ${{ github.run_id }}
+      os:
+        description: Operating system
+        required: true
+        type: string
+
+      java:
+        description: Java version
+        required: true
+        type: string
+
+      browser:
+        description: Browser
+        required: true
+        type: string
 
 permissions:
   contents: read
@@ -20,123 +30,9 @@ jobs:
 
   selenium-tests:
 
-    name: ${{ matrix.config_name }}
+    name: Selenium tests
 
-    runs-on: ${{ matrix.os }}
-
-    strategy:
-      fail-fast: false
-
-      matrix:
-        include:
-          - os: ubuntu-latest
-            os-name: ubuntu
-            java: 17
-            browser: chrome
-            config_name: ubuntu / Java 17 / Chrome
-
-          - os: ubuntu-latest
-            os-name: ubuntu
-            java: 17
-            browser: firefox
-            config_name: ubuntu / Java 17 / Firefox
-
-          - os: ubuntu-latest
-            os-name: ubuntu
-            java: 17
-            browser: edge
-            config_name: ubuntu / Java 17 / Edge
-
-          - os: ubuntu-latest
-            os-name: ubuntu
-            java: 21
-            browser: chrome
-            config_name: ubuntu / Java 21 / Chrome
-
-          - os: ubuntu-latest
-            os-name: ubuntu
-            java: 21
-            browser: firefox
-            config_name: ubuntu / Java 21 / Firefox
-
-          - os: ubuntu-latest
-            os-name: ubuntu
-            java: 21
-            browser: edge
-            config_name: ubuntu / Java 21 / Edge
-
-          - os: windows-latest
-            os-name: windows
-            java: 17
-            browser: chrome
-            config_name: windows / Java 17 / Chrome
-
-          - os: windows-latest
-            os-name: windows
-            java: 17
-            browser: firefox
-            config_name: windows / Java 17 / Firefox
-
-          - os: windows-latest
-            os-name: windows
-            java: 17
-            browser: edge
-            config_name: windows / Java 17 / Edge
-
-          - os: windows-latest
-            os-name: windows
-            java: 21
-            browser: chrome
-            config_name: windows / Java 21 / Chrome
-
-          - os: windows-latest
-            os-name: windows
-            java: 21
-            browser: firefox
-            config_name: windows / Java 21 / Firefox
-
-          - os: windows-latest
-            os-name: windows
-            java: 21
-            browser: edge
-            config_name: windows / Java 21 / Edge
-
-          - os: macos-latest
-            os-name: macos
-            java: 17
-            browser: chrome
-            config_name: macOS / Java 17 / Chrome
-
-          - os: macos-latest
-            os-name: macos
-            java: 17
-            browser: firefox
-            config_name: macOS / Java 17 / Firefox
-
-          - os: macos-latest
-            os-name: macos
-            java: 17
-            browser: edge
-            config_name: macOS / Java 17 / Edge
-
-          - os: macos-latest
-            os-name: macos
-            java: 21
-            browser: chrome
-            config_name: macOS / Java 21 / Chrome
-
-          - os: macos-latest
-            os-name: macos
-            java: 21
-            browser: firefox
-            config_name: macOS / Java 21 / Firefox
-
-          - os: macos-latest
-            os-name: macos
-            java: 21
-            browser: edge
-            config_name: macOS / Java 21 / Edge
-
+    runs-on: ${{ inputs.os }}
 
     env:
       PASSWORD: ${{ secrets.PASSWORD }}
@@ -144,7 +40,7 @@ jobs:
       INVALIDATE_PASSWORD: ${{ secrets.INVALIDATE_PASSWORD }}
       WRONG_PASSWORD: ${{ secrets.WRONG_PASSWORD }}
 
-      BROWSER: ${{ matrix.browser }}
+      BROWSER: ${{ inputs.browser }}
 
     steps:
 
@@ -155,15 +51,15 @@ jobs:
         uses: actions/setup-java@v5
         with:
           distribution: temurin
-          java-version: ${{ matrix.java }}
+          java-version: ${{ inputs.java }}
           cache: maven
 
       - name: Show environment
         shell: bash
         run: |
-          echo "OS: ${{ matrix.os-name }}"
-          echo "Java: ${{ matrix.java }}"
-          echo "Browser: ${{ matrix.browser }}"
+          echo "OS: ${{ inputs.os }}"
+          echo "Java: ${{ inputs.java }}"
+          echo "Browser: ${{ inputs.browser }}"
 
           java -version
           mvn -version
@@ -180,7 +76,7 @@ jobs:
         if: always()
         uses: actions/upload-artifact@v6
         with:
-          name: surefire-${{ matrix.os-name }}-java-${{ matrix.java }}-${{ matrix.browser }}
+          name: surefire-${{ inputs.os }}-java-${{ inputs.java }}-${{ inputs.browser }}
           path: target/surefire-reports/
           if-no-files-found: warn
 

@@ -36,7 +36,122 @@ jobs:
 
   selenium:
 
-    name: Selenium CI
+    name: ${{ matrix.config_name }}
+
+    strategy:
+      fail-fast: false
+
+      matrix:
+        include:
+
+          - os: ubuntu-latest
+            os_name: ubuntu
+            java: 17
+            browser: chrome
+            config_name: ubuntu / Java 17 / Chrome
+
+          - os: ubuntu-latest
+            os_name: ubuntu
+            java: 17
+            browser: firefox
+            config_name: ubuntu / Java 17 / Firefox
+
+          - os: ubuntu-latest
+            os_name: ubuntu
+            java: 17
+            browser: edge
+            config_name: ubuntu / Java 17 / Edge
+
+          - os: ubuntu-latest
+            os_name: ubuntu
+            java: 21
+            browser: chrome
+            config_name: ubuntu / Java 21 / Chrome
+
+          - os: ubuntu-latest
+            os_name: ubuntu
+            java: 21
+            browser: firefox
+            config_name: ubuntu / Java 21 / Firefox
+
+          - os: ubuntu-latest
+            os_name: ubuntu
+            java: 21
+            browser: edge
+            config_name: ubuntu / Java 21 / Edge
+
+          - os: windows-latest
+            os_name: windows
+            java: 17
+            browser: chrome
+            config_name: windows / Java 17 / Chrome
+
+          - os: windows-latest
+            os_name: windows
+            java: 17
+            browser: firefox
+            config_name: windows / Java 17 / Firefox
+
+          - os: windows-latest
+            os_name: windows
+            java: 17
+            browser: edge
+            config_name: windows / Java 17 / Edge
+
+          - os: windows-latest
+            os_name: windows
+            java: 21
+            browser: chrome
+            config_name: windows / Java 21 / Chrome
+
+          - os: windows-latest
+            os_name: windows
+            java: 21
+            browser: firefox
+            config_name: windows / Java 21 / Firefox
+
+          - os: windows-latest
+            os_name: windows
+            java: 21
+            browser: edge
+            config_name: windows / Java 21 / Edge
+
+          - os: macos-latest
+            os_name: macos
+            java: 17
+            browser: chrome
+            config_name: macOS / Java 17 / Chrome
+
+          - os: macos-latest
+            os_name: macos
+            java: 17
+            browser: firefox
+            config_name: macOS / Java 17 / Firefox
+
+          - os: macos-latest
+            os_name: macos
+            java: 17
+            browser: edge
+            config_name: macOS / Java 17 / Edge
+
+          - os: macos-latest
+            os_name: macos
+            java: 21
+            browser: chrome
+            config_name: macOS / Java 21 / Chrome
+
+          - os: macos-latest
+            os_name: macos
+            java: 21
+            browser: firefox
+            config_name: macOS / Java 21 / Firefox
+
+          - os: macos-latest
+            os_name: macos
+            java: 21
+            browser: edge
+            config_name: macOS / Java 21 / Edge
+
 
     uses: ./.github/workflows/ci.yml
 
@@ -44,6 +159,9 @@ jobs:
 
     with:
       suite: ${{ inputs.suite || 'all' }}
+      os: ${{ matrix.os }}
+      java: ${{ matrix.java }}
+      browser: ${{ matrix.browser }}
 
 
   docker:
@@ -101,11 +219,9 @@ jobs:
 
     with:
 
-      selenium_run_id:
-        ${{ needs.selenium.outputs.run_id }}
+      selenium_run_id: ${{ needs.selenium.outputs.run_id }}
 
-      docker_run_id:
-        ${{ needs.docker.outputs.run_id }}
+      docker_run_id: ${{ needs.docker.outputs.run_id }}
 
     permissions:
       actions: read
