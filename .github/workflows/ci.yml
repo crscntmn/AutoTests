@@ -13,6 +13,11 @@ on:
         required: true
         type: string
 
+      os_name:
+        description: Operating system display name
+        required: true
+        type: string
+
       java:
         description: Java version
         required: true
@@ -23,18 +28,37 @@ on:
         required: true
         type: string
 
+      config_name:
+        description: Full configuration name
+        required: true
+        type: string
+
+
+    outputs:
+
+      run_id:
+        description: Selenium CI workflow run ID
+        value: ${{ jobs.selenium-tests.outputs.run_id }}
+
+
 permissions:
   contents: read
+
 
 jobs:
 
   selenium-tests:
-
-    name: Selenium tests
+    name: ${{ inputs.config_name }}
 
     runs-on: ${{ inputs.os }}
 
+    outputs:
+
+      run_id: ${{ steps.workflow-run-id.outputs.run_id }}
+
+
     env:
+
       PASSWORD: ${{ secrets.PASSWORD }}
       SHORT_PASSWORD: ${{ secrets.SHORT_PASSWORD }}
       INVALIDATE_PASSWORD: ${{ secrets.INVALIDATE_PASSWORD }}
@@ -42,7 +66,13 @@ jobs:
 
       BROWSER: ${{ inputs.browser }}
 
+
     steps:
+      - name: Get workflow run ID
+        id: workflow-run-id
+        shell: bash
+        run: |
+          echo "run_id=${{ github.run_id }}" >> "$GITHUB_OUTPUT"
 
       - name: Checkout repository
         uses: actions/checkout@v6
@@ -57,7 +87,8 @@ jobs:
       - name: Show environment
         shell: bash
         run: |
-          echo "OS: ${{ inputs.os }}"
+          echo "Configuration: ${{ inputs.config_name }}"
+          echo "OS: ${{ inputs.os_name }}"
           echo "Java: ${{ inputs.java }}"
           echo "Browser: ${{ inputs.browser }}"
 
@@ -76,7 +107,7 @@ jobs:
         if: always()
         uses: actions/upload-artifact@v6
         with:
-          name: surefire-${{ inputs.os }}-java-${{ inputs.java }}-${{ inputs.browser }}
+          name: surefire-${{ inputs.os_name }}-java-${{ inputs.java }}-${{ inputs.browser }}
           path: target/surefire-reports/
           if-no-files-found: warn
 
@@ -128,6 +159,6 @@ jobs:
         if: always()
         uses: actions/upload-artifact@v6
         with:
-          name: selenium-allure-${{ matrix.os-name }}-java-${{ matrix.java }}-${{ matrix.browser }}
+          name: selenium-allure-${{ inputs.os_name }}-java-${{ inputs.java }}-${{ inputs.browser }}
           path: allure-report/
           if-no-files-found: error

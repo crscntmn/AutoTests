@@ -35,8 +35,7 @@ permissions:
 jobs:
 
   selenium:
-
-    name: ${{ matrix.config_name }}
+    name: ${{ matrix.os_name }}
 
     strategy:
       fail-fast: false
@@ -46,109 +45,109 @@ jobs:
 
           - os: ubuntu-latest
             os_name: ubuntu
-            java: 17
+            java: '17'
             browser: chrome
             config_name: ubuntu / Java 17 / Chrome
 
           - os: ubuntu-latest
             os_name: ubuntu
-            java: 17
+            java: '17'
             browser: firefox
             config_name: ubuntu / Java 17 / Firefox
 
           - os: ubuntu-latest
             os_name: ubuntu
-            java: 17
+            java: '17'
             browser: edge
             config_name: ubuntu / Java 17 / Edge
 
           - os: ubuntu-latest
             os_name: ubuntu
-            java: 21
+            java: '21'
             browser: chrome
             config_name: ubuntu / Java 21 / Chrome
 
           - os: ubuntu-latest
             os_name: ubuntu
-            java: 21
+            java: '21'
             browser: firefox
             config_name: ubuntu / Java 21 / Firefox
 
           - os: ubuntu-latest
             os_name: ubuntu
-            java: 21
+            java: '21'
             browser: edge
             config_name: ubuntu / Java 21 / Edge
 
           - os: windows-latest
             os_name: windows
-            java: 17
+            java: '17'
             browser: chrome
             config_name: windows / Java 17 / Chrome
 
           - os: windows-latest
             os_name: windows
-            java: 17
+            java: '17'
             browser: firefox
             config_name: windows / Java 17 / Firefox
 
           - os: windows-latest
             os_name: windows
-            java: 17
+            java: '17'
             browser: edge
             config_name: windows / Java 17 / Edge
 
           - os: windows-latest
             os_name: windows
-            java: 21
+            java: '21'
             browser: chrome
             config_name: windows / Java 21 / Chrome
 
           - os: windows-latest
             os_name: windows
-            java: 21
+            java: '21'
             browser: firefox
             config_name: windows / Java 21 / Firefox
 
           - os: windows-latest
             os_name: windows
-            java: 21
+            java: '21'
             browser: edge
             config_name: windows / Java 21 / Edge
 
           - os: macos-latest
-            os_name: macos
-            java: 17
+            os_name: macOS
+            java: '17'
             browser: chrome
             config_name: macOS / Java 17 / Chrome
 
           - os: macos-latest
-            os_name: macos
-            java: 17
+            os_name: macOS
+            java: '17'
             browser: firefox
             config_name: macOS / Java 17 / Firefox
 
           - os: macos-latest
-            os_name: macos
-            java: 17
+            os_name: macOS
+            java: '17'
             browser: edge
             config_name: macOS / Java 17 / Edge
 
           - os: macos-latest
-            os_name: macos
-            java: 21
+            os_name: macOS
+            java: '21'
             browser: chrome
             config_name: macOS / Java 21 / Chrome
 
           - os: macos-latest
-            os_name: macos
-            java: 21
+            os_name: macOS
+            java: '21'
             browser: firefox
             config_name: macOS / Java 21 / Firefox
 
           - os: macos-latest
-            os_name: macos
-            java: 21
+            os_name: macOS
+            java: '21'
             browser: edge
             config_name: macOS / Java 21 / Edge
 
@@ -160,8 +159,10 @@ jobs:
     with:
       suite: ${{ inputs.suite || 'all' }}
       os: ${{ matrix.os }}
+      os_name: ${{ matrix.os_name }}
       java: ${{ matrix.java }}
       browser: ${{ matrix.browser }}
+      config_name: ${{ matrix.config_name }}
 
 
   docker:
@@ -204,7 +205,6 @@ jobs:
 
           echo "All CI tests passed."
 
-
   publish:
 
     name: Publish Allure Pages
@@ -218,9 +218,7 @@ jobs:
     uses: ./.github/workflows/allure-pages.yml
 
     with:
-
       selenium_run_id: ${{ needs.selenium.outputs.run_id }}
-
       docker_run_id: ${{ needs.docker.outputs.run_id }}
 
     permissions:
