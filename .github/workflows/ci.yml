@@ -20,7 +20,7 @@ jobs:
 
   selenium-tests:
 
-    name: ${{ matrix.os-name }} / Java ${{ matrix.java }} / ${{ matrix.browser }}
+    name: ${{ matrix.config-name }}
 
     runs-on: ${{ matrix.os }}
 
@@ -33,91 +33,109 @@ jobs:
             os-name: ubuntu
             java: 17
             browser: chrome
+            config-name: ubuntu / Java 17 / Chrome
 
           - os: ubuntu-latest
             os-name: ubuntu
             java: 17
             browser: firefox
+            config-name: ubuntu / Java 17 / Firefox
 
           - os: ubuntu-latest
             os-name: ubuntu
             java: 17
             browser: edge
+            config-name: ubuntu / Java 17 / Edge
 
           - os: ubuntu-latest
             os-name: ubuntu
             java: 21
             browser: chrome
+            config-name: ubuntu / Java 21 / Chrome
 
           - os: ubuntu-latest
             os-name: ubuntu
             java: 21
             browser: firefox
+            config-name: ubuntu / Java 21 / Firefox
 
           - os: ubuntu-latest
             os-name: ubuntu
             java: 21
             browser: edge
+            config-name: ubuntu / Java 21 / Edge
 
           - os: windows-latest
             os-name: windows
             java: 17
             browser: chrome
+            config-name: windows / Java 17 / Chrome
 
           - os: windows-latest
             os-name: windows
             java: 17
             browser: firefox
+            config-name: windows / Java 17 / Firefox
 
           - os: windows-latest
             os-name: windows
             java: 17
             browser: edge
+            config-name: windows / Java 17 / Edge
 
           - os: windows-latest
             os-name: windows
             java: 21
             browser: chrome
+            config-name: windows / Java 21 / Chrome
 
           - os: windows-latest
             os-name: windows
             java: 21
             browser: firefox
+            config-name: windows / Java 21 / Firefox
 
           - os: windows-latest
             os-name: windows
             java: 21
             browser: edge
+            config-name: windows / Java 21 / Edge
 
           - os: macos-latest
             os-name: macos
             java: 17
             browser: chrome
+            config-name: macOS / Java 17 / Chrome
 
           - os: macos-latest
             os-name: macos
             java: 17
             browser: firefox
+            config-name: macOS / Java 17 / Firefox
 
           - os: macos-latest
             os-name: macos
             java: 17
             browser: edge
+            config-name: macOS / Java 17 / Edge
 
           - os: macos-latest
             os-name: macos
             java: 21
             browser: chrome
+            config-name: macOS / Java 21 / Chrome
 
           - os: macos-latest
             os-name: macos
             java: 21
             browser: firefox
+            config-name: macOS / Java 21 / Firefox
 
           - os: macos-latest
             os-name: macos
             java: 21
             browser: edge
+            config-name: macOS / Java 21 / Edge
 
 
     env:
