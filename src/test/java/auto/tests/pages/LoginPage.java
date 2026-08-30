@@ -2,7 +2,6 @@ package auto.tests.pages;
 
 import org.openqa.selenium.By;
 import org.openqa.selenium.WebDriver;
-import org.openqa.selenium.support.ui.ExpectedConditions;
 
 public class LoginPage extends BasePage {
 
@@ -10,15 +9,13 @@ public class LoginPage extends BasePage {
         super(driver);
     }
 
-    //Локаторы
-    private final By loginButton = By.cssSelector(".ico-login");
+    //Локаторы (/login)
     private final By emailField = By.id("Email");
     private final By passwordField = By.id("Password");
     private final By rememberMe = By.id("RememberMe");
     private final By endLoginButton = By.cssSelector(".button-1.login-button");
     private final By forgotPasswordButton = By.xpath("//a[text()='Forgot password?']");
     private final By accountLink = By.cssSelector(".header-links a.account");
-    private final By logout = By.cssSelector(".ico-logout");
     private final By errorMessageIncorrectData = By.cssSelector(".validation-summary-errors");
     private final By errorMessageInvalidEmail = By.cssSelector(".field-validation-error");
     private final By RecoverButton = By.name("send-email");

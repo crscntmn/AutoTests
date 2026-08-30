@@ -21,7 +21,7 @@ public class LoginTest extends BaseTest {
     void setUp() {
         loginPage = new LoginPage(driver);
         email = TestData.generateEmail();
-        wrong_email = TestData.generateEmailWithCaps();
+        wrong_email = TestData.generateWrongEmail();
         empty_email = TestData.generateEmptyEmail();
         registrationPage = new RegistrationPage(driver);
         header = new HeaderComponent(driver);
@@ -80,8 +80,8 @@ public class LoginTest extends BaseTest {
         header.openLogin();
         //2. Процесс авторизации (Ввод email и пароль)
         loginPage.loginUser(wrong_email, TestData.PASSWORD);
-        //Ожидаемое поведение: ошибка авторизации
-        Assertions.assertTrue(loginPage.isAuthorizationUnsuccessful());
+        //Ожидаемое поведение: Отображение ошибки невалидного email
+        Assertions.assertTrue(loginPage.isInvalidEmailErrorDisplayed());
     }
 
     @Test
@@ -139,4 +139,23 @@ public class LoginTest extends BaseTest {
         Assertions.assertTrue(loginPage.sentInstructionInEmail());
     }
 
+    @Test
+    @DisplayName("1.9 Авторизация с неверным email и пустым паролем")
+    void AuthorizationWithInvalidEmailAndEmptyPassword() {
+        //1. Нажатие на логин
+        header.openLogin();
+        //2. Ввод email
+        loginPage.loginUser(wrong_email, TestData.EMPTY_PASSWORD);
+        //Ожидаемое поведение: Отображение ошибки невалидного email
+        Assertions.assertTrue(loginPage.isInvalidEmailErrorDisplayed());
+    }
+
+    @Test
+    @DisplayName("1.10 Проверка разлогина")
+    void LogoutAfterAuthorization() {
+        //Регистрация пользователя и выход
+        registerNewUser();
+        //Ожидаемое поведение: Отображение кнопки Login в шапке
+        Assertions.assertTrue(header.isLoginButtonDisplayed());
+    }
 }
