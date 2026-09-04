@@ -25,7 +25,8 @@ public class CartPage extends BasePage {
     private final By recipientsEmail = By.id("giftcard_2_RecipientEmail");
     private final By senderName = By.id("giftcard_2_SenderName");
     private final By senderEmail = By.id("giftcard_2_SenderEmail");
-    private final By updateShoppingCartButton = By.xpath("//input[@class='button-2 update-cart-button']");
+    //private final By updateShoppingCartButton = By.xpath("//input[@class='button-2 update-cart-button']");
+    private final By updateShoppingCartButton = By.name("updatecart");
     private final By removeCheckboxInCart = By.name("removefromcart");
     private final By unitPrice = By.cssSelector(".product-unit-price");
     private final By totalPrice = By.cssSelector(".product-subtotal");
