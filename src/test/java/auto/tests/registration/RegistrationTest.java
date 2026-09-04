@@ -152,7 +152,7 @@ public class RegistrationTest extends BaseTest {
         header.openRegistration();
         //2. Регистрация пользователя
         registrationPage.registerUser(TestData.NAME, TestData.LASTNAME, EMAIL_WITH_CAPS, TestData.PASSWORD, TestData.PASSWORD);
-        //Ожидаемое поведение: ошибка регистрации
+        //Ожидаемое поведение: успешная регистрация
         Assertions.assertTrue(registrationPage.isRegistrationSuccessful());
     }
 }

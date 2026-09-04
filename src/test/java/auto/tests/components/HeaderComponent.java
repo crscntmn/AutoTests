@@ -14,6 +14,8 @@ public class HeaderComponent extends BasePage {
     private final By loginButton = By.cssSelector(".ico-login");
     private final By cartButton = By.cssSelector(".cart-label");
     private final By logoutButton = By.cssSelector(".ico-logout");
+    private final By cartQty = By.cssSelector(".cart-qty");
+    private final By successfulAddToCart = By.cssSelector(".bar-notification.success");
 //    private final By searchField = By.id("small-searchterms");
 //    private final By searchButton = By.cssSelector(".button-1.search-box-button");
 
@@ -36,9 +38,15 @@ public class HeaderComponent extends BasePage {
     public void addProductToCart(String productName) {
         By addToCart = By.xpath("//a[text()='" + productName + "']/ancestor::div[@class='item-box']//input[@value='Add to cart']");
         click(addToCart);
+        waitVisible(successfulAddToCart);
     }
 
     public boolean isLoginButtonDisplayed() {
         return isDisplayed(loginButton);
+    }
+
+    public int getCountItemsInHeader() {
+        String text = getText(cartQty);
+        return Integer.parseInt(text.replaceAll("[^0-9]", ""));
     }
 }
