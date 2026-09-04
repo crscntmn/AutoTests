@@ -9,6 +9,8 @@ import base.BaseTest;
 import org.junit.jupiter.api.*;
 import java.math.BigDecimal;
 
+import static java.lang.Thread.sleep;
+
 public class CartTest extends BaseTest {
     CartPage cartPage;
     RegistrationPage registrationPage;
@@ -100,11 +102,12 @@ public class CartTest extends BaseTest {
 
     @Test
     @DisplayName("1.5 Повторное добавление одного товара в корзину анонимом")
-    void manySamePositionToCart() {
+    void manySamePositionToCart() throws InterruptedException {
         //1. Добавление ноутбука в корзину
         header.addProductToCart(Laptop);
         //Ожидаемое поведение: ноутбук успешно добавлен в корзину
         Assertions.assertTrue(cartPage.addProductToCartSuccessful());
+        Thread.sleep(1000);
         //2. Добавление ноутбука в корзину
         header.addProductToCart(Laptop);
         //Ожидаемое поведение: ноутбук успешно добавлен в корзину
