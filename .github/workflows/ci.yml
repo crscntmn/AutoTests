@@ -36,28 +36,8 @@ jobs:
 
           - os: ubuntu-latest
             os-name: ubuntu
-            java: 17
-            browser: firefox
-
-          - os: ubuntu-latest
-            os-name: ubuntu
-            java: 17
-            browser: edge
-
-          - os: ubuntu-latest
-            os-name: ubuntu
             java: 21
             browser: chrome
-
-          - os: ubuntu-latest
-            os-name: ubuntu
-            java: 21
-            browser: firefox
-
-          - os: ubuntu-latest
-            os-name: ubuntu
-            java: 21
-            browser: edge
 
           - os: windows-latest
             os-name: windows
@@ -66,28 +46,8 @@ jobs:
 
           - os: windows-latest
             os-name: windows
-            java: 17
-            browser: firefox
-
-          - os: windows-latest
-            os-name: windows
-            java: 17
-            browser: edge
-
-          - os: windows-latest
-            os-name: windows
             java: 21
             browser: chrome
-
-          - os: windows-latest
-            os-name: windows
-            java: 21
-            browser: firefox
-
-          - os: windows-latest
-            os-name: windows
-            java: 21
-            browser: edge
 
           - os: macos-latest
             os-name: macos
@@ -97,12 +57,7 @@ jobs:
           - os: macos-latest
             os-name: macos
             java: 17
-            browser: firefox
-
-          - os: macos-latest
-            os-name: macos
-            java: 17
-            browser: edge
+            browser: safari
 
           - os: macos-latest
             os-name: macos
@@ -112,12 +67,7 @@ jobs:
           - os: macos-latest
             os-name: macos
             java: 21
-            browser: firefox
-
-          - os: macos-latest
-            os-name: macos
-            java: 21
-            browser: edge
+            browser: safari
 
 
     env:

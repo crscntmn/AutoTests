@@ -88,8 +88,8 @@ jobs:
 
             # Expected:
             # ubuntu-java-17-chrome
-            # windows-java-21-firefox
-            # macos-java-17-edge
+            # windows-java-21-chrome
+            # macos-java-17-safari
 
             os="${config%%-java-*}"
 
