@@ -102,12 +102,11 @@ public class CartTest extends BaseTest {
 
     @Test
     @DisplayName("1.5 Повторное добавление одного товара в корзину анонимом")
-    void manySamePositionToCart() throws InterruptedException {
+    void manySamePositionToCart() {
         //1. Добавление ноутбука в корзину
         header.addProductToCart(Laptop);
         //Ожидаемое поведение: ноутбук успешно добавлен в корзину
         Assertions.assertTrue(cartPage.addProductToCartSuccessful());
-        Thread.sleep(1000);
         //2. Добавление ноутбука в корзину
         header.addProductToCart(Laptop);
         //Ожидаемое поведение: ноутбук успешно добавлен в корзину

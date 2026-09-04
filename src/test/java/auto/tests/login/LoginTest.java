@@ -64,6 +64,8 @@ public class LoginTest extends BaseTest {
     void AuthorizationWithWrongPassword() {
         //1. Нажатие на логин
         header.openLogin();
+        //Ожидаемый результат: Форма авторизации открыта
+        Assertions.assertTrue(loginPage.authorizationFormIsOpen());
         //2. Процесс авторизации (Ввод email и пароль)
         loginPage.loginUser(email, TestData.WRONG_PASSWORD);
         //Ожидаемое поведение: ошибка авторизации
