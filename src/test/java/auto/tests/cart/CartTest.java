@@ -151,7 +151,8 @@ public class CartTest extends BaseTest {
     void countInHeader() {
         //1. Добавление ноутбука в корзину
         header.addProductToCart(Laptop);
-        //Ожидаемое поведение: счетчик в шапке изменился на "1"
+        //Ожидаемое поведение: ноутбук успешно добавлен в корзину и счетчик изменился на "1"
+        Assertions.assertTrue(cartPage.addProductToCartSuccessful());
         Assertions.assertEquals(1, header.getCountItemsInHeader());
     }
 

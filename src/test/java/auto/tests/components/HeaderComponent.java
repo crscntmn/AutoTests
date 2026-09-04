@@ -38,7 +38,7 @@ public class HeaderComponent extends BasePage {
     public void addProductToCart(String productName) {
         By addToCart = By.xpath("//a[text()='" + productName + "']/ancestor::div[@class='item-box']//input[@value='Add to cart']");
         click(addToCart);
-        waitVisible(successfulAddToCart);
+        waitVisible(cartQty);
     }
 
     public boolean isLoginButtonDisplayed() {
