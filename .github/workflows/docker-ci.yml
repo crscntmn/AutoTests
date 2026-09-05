@@ -37,9 +37,6 @@ jobs:
           - browser: firefox
             selenium_image: selenium/standalone-firefox:latest
 
-          - browser: safari
-            selenium_image: selenium/standalone-safari:latest
-
 
     outputs:
       run_id: ${{ github.run_id }}

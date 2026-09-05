@@ -56,13 +56,13 @@ jobs:
 
           - os: macos-latest
             os-name: macos
-            java: 17
-            browser: safari
+            java: 21
+            browser: chrome
 
           - os: macos-latest
             os-name: macos
-            java: 21
-            browser: chrome
+            java: 17
+            browser: safari
 
           - os: macos-latest
             os-name: macos

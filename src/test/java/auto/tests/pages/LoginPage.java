@@ -63,9 +63,4 @@ public class LoginPage extends BasePage {
     public boolean sentInstructionInEmail() {
         return getText(errorEmailNotFound).contains("Email with instructions has been sent to you.");
     }
-
-    public boolean authorizationFormIsOpen() {
-        waitVisible(emailField);
-        return true;
-    }
 }
