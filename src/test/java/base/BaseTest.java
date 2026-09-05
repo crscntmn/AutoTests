@@ -7,8 +7,9 @@ import org.openqa.selenium.Dimension;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.chrome.ChromeDriver;
 import org.openqa.selenium.chrome.ChromeOptions;
+import org.openqa.selenium.edge.EdgeOptions;
+import org.openqa.selenium.firefox.FirefoxOptions;
 import org.openqa.selenium.remote.RemoteWebDriver;
-import org.openqa.selenium.safari.SafariDriver;
 
 import java.net.URL;
 
@@ -36,10 +37,6 @@ public class BaseTest {
 
         switch (browser) {
 
-            case "safari":
-
-                return new SafariDriver();
-
             case "chrome":
 
                 ChromeOptions chromeOptions = new ChromeOptions();
@@ -66,12 +63,23 @@ public class BaseTest {
     ) throws Exception {
 
         switch (browser) {
+
+            case "firefox":
+
+                FirefoxOptions firefoxOptions = new FirefoxOptions();
+                return new RemoteWebDriver(new URL(remoteUrl), firefoxOptions);
+
+            case "edge":
+
+                EdgeOptions edgeOptions = new EdgeOptions();
+
+                return new RemoteWebDriver(new URL(remoteUrl), edgeOptions);
+
             case "chrome":
+
                 ChromeOptions chromeOptions = new ChromeOptions();
-                return new RemoteWebDriver(
-                        new URL(remoteUrl),
-                        chromeOptions
-                );
+
+                return new RemoteWebDriver(new URL(remoteUrl), chromeOptions);
 
             default:
                 throw new IllegalArgumentException("Unsupported remote browser: " + browser);
