@@ -30,6 +30,7 @@ public class CartPage extends BasePage {
     private final By removeCheckboxInCart = By.name("removefromcart");
     private final By unitPrice = By.cssSelector(".product-unit-price");
     private final By totalPrice = By.cssSelector(".product-subtotal");
+    private final By isEmptyCart = By.cssSelector(".order-summary-content");
 
 
     public void clickCheckout() {
@@ -100,5 +101,9 @@ public class CartPage extends BasePage {
     public BigDecimal getProductTotalPrice(String productName) {
         By locator = By.xpath("//a[text()='" + productName + "']/ancestor::tr[@class='cart-item-row']//span[@class='product-subtotal']");
         return new BigDecimal(getText(locator).replace("$", ""));
+    }
+
+    public boolean isCartEmpty() {
+        return getText(isEmptyCart).contains("Your Shopping Cart is empty!");
     }
 }
