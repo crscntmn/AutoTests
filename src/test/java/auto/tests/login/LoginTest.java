@@ -4,7 +4,7 @@ import auto.tests.components.HeaderComponent;
 import auto.tests.pages.LoginPage;
 import auto.tests.pages.RegistrationPage;
 import auto.tests.testdata.TestData;
-import base.BaseTest;
+import auto.tests.base.BaseTest;
 import org.junit.jupiter.api.*;
 import org.junit.jupiter.api.Tag;
 

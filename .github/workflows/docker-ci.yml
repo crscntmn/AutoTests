@@ -152,16 +152,18 @@ jobs:
         id: run-tests
         continue-on-error: true
         run: |
-
+          
           echo "========================================"
           echo "Running tests"
           echo "Browser: ${BROWSER}"
           echo "Selenium: ${SELENIUM_IMAGE}"
           echo "========================================"
-
+          
           docker compose \
             -f docker-compose.yml \
-            up autotests
+            up \
+            --exit-code-from autotests \
+            autotests
 
       - name: Show Docker containers
         if: always()
