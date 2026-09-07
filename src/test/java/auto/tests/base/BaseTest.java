@@ -1,4 +1,4 @@
-package base;
+package auto.tests.base;
 
 import auto.tests.config.Config;
 import org.junit.jupiter.api.AfterEach;
@@ -7,12 +7,9 @@ import org.openqa.selenium.Dimension;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.chrome.ChromeDriver;
 import org.openqa.selenium.chrome.ChromeOptions;
-import org.openqa.selenium.edge.EdgeDriver;
 import org.openqa.selenium.edge.EdgeOptions;
-import org.openqa.selenium.firefox.FirefoxDriver;
 import org.openqa.selenium.firefox.FirefoxOptions;
 import org.openqa.selenium.remote.RemoteWebDriver;
-
 import java.net.URL;
 
 public class BaseTest {
@@ -25,7 +22,6 @@ public class BaseTest {
         String browser = System.getenv().getOrDefault("BROWSER", "chrome").toLowerCase();
         String remoteUrl = System.getenv("SELENIUM_REMOTE_URL");
         boolean ci = System.getenv("CI") != null;
-
         if (remoteUrl != null && !remoteUrl.isBlank()) {
             driver = createRemoteDriver(browser, remoteUrl);
         } else {
@@ -40,31 +36,7 @@ public class BaseTest {
 
         switch (browser) {
 
-            case "firefox":
-
-                FirefoxOptions firefoxOptions = new FirefoxOptions();
-
-                if (ci) {
-                    firefoxOptions.addArguments("-headless");
-                }
-
-                return new FirefoxDriver(firefoxOptions);
-
-            case "edge":
-
-                EdgeOptions edgeOptions = new EdgeOptions();
-
-                if (ci) {
-                    edgeOptions.addArguments("--headless=new");
-                    edgeOptions.addArguments("--no-sandbox");
-                    edgeOptions.addArguments("--disable-dev-shm-usage");
-                }
-
-                return new EdgeDriver(edgeOptions);
-
             case "chrome":
-
-            default:
 
                 ChromeOptions chromeOptions = new ChromeOptions();
 
@@ -75,6 +47,12 @@ public class BaseTest {
                 }
 
                 return new ChromeDriver(chromeOptions);
+
+            default:
+
+                throw new IllegalArgumentException(
+                        "Unsupported browser: " + browser
+                );
         }
     }
 
@@ -88,31 +66,20 @@ public class BaseTest {
             case "firefox":
 
                 FirefoxOptions firefoxOptions = new FirefoxOptions();
-
-                return new RemoteWebDriver(
-                        new URL(remoteUrl),
-                        firefoxOptions
-                );
+                return new RemoteWebDriver(new URL(remoteUrl), firefoxOptions);
 
             case "edge":
 
                 EdgeOptions edgeOptions = new EdgeOptions();
-
-                return new RemoteWebDriver(
-                        new URL(remoteUrl),
-                        edgeOptions
-                );
+                return new RemoteWebDriver(new URL(remoteUrl), edgeOptions);
 
             case "chrome":
 
-            default:
-
                 ChromeOptions chromeOptions = new ChromeOptions();
+                return new RemoteWebDriver(new URL(remoteUrl), chromeOptions);
 
-                return new RemoteWebDriver(
-                        new URL(remoteUrl),
-                        chromeOptions
-                );
+            default:
+                throw new IllegalArgumentException("Unsupported remote browser: " + browser);
         }
     }
 

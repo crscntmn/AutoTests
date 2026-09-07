@@ -3,7 +3,7 @@ package auto.tests.registration;
 import auto.tests.components.HeaderComponent;
 import auto.tests.pages.RegistrationPage;
 import auto.tests.testdata.TestData;
-import base.BaseTest;
+import auto.tests.base.BaseTest;
 import org.junit.jupiter.api.*;
 import org.junit.jupiter.api.Tag;
 
@@ -152,7 +152,7 @@ public class RegistrationTest extends BaseTest {
         header.openRegistration();
         //2. Регистрация пользователя
         registrationPage.registerUser(TestData.NAME, TestData.LASTNAME, EMAIL_WITH_CAPS, TestData.PASSWORD, TestData.PASSWORD);
-        //Ожидаемое поведение: ошибка регистрации
+        //Ожидаемое поведение: успешная регистрация
         Assertions.assertTrue(registrationPage.isRegistrationSuccessful());
     }
 }
