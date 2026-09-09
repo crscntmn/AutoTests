@@ -11,7 +11,7 @@ import org.junit.jupiter.api.Tag;
 public class RegistrationTest extends BaseTest {
     String EMAIL;
     String WRONG_EMAIL;
-    String EMPTY_EMAIL;
+//    String EMPTY_EMAIL;
     String EMAIL_WITH_SPACE;
     String EMAIL_WITH_CAPS;
     RegistrationPage registrationPage;
@@ -21,7 +21,7 @@ public class RegistrationTest extends BaseTest {
     void setUp() {
         EMAIL = TestData.generateEmail();
         WRONG_EMAIL = TestData.generateWrongEmail();
-        EMPTY_EMAIL = TestData.generateEmptyEmail();
+//        EMPTY_EMAIL = TestData.generateEmptyEmail();
         EMAIL_WITH_SPACE = TestData.generateEmailWithSpace();
         EMAIL_WITH_CAPS = TestData.generateEmailWithCaps();
         registrationPage = new RegistrationPage(driver);
@@ -105,7 +105,7 @@ public class RegistrationTest extends BaseTest {
         //1. Клик по кнопке регистрации
         header.openRegistration();
         //2. Регистрация пользователя
-        registrationPage.registerUser(TestData.NAME, TestData.LASTNAME, EMPTY_EMAIL, TestData.PASSWORD, TestData.PASSWORD);
+        registrationPage.registerUser(TestData.NAME, TestData.LASTNAME, TestData.EMPTY_EMAIL, TestData.PASSWORD, TestData.PASSWORD);
         //Ожидаемое поведение: ошибка регистрации
         Assertions.assertTrue(registrationPage.isEmptyEmail());
     }
