@@ -16,7 +16,7 @@
     <groups></groups>
 
     <junit.version>5.10.2</junit.version>
-    <selenium.version>4.27.0</selenium.version>
+    <selenium.version>4.46.0</selenium.version>
     <webdrivermanager.version>6.1.0</webdrivermanager.version>
     <allure.version>2.29.1</allure.version>
   </properties>
