@@ -15,14 +15,12 @@ public class LoginTest extends BaseTest {
     HeaderComponent header;
     String email;
     String wrong_email;
-    String empty_email;
 
     @BeforeEach
     void setUp() {
         loginPage = new LoginPage(driver);
         email = TestData.generateEmail();
         wrong_email = TestData.generateWrongEmail();
-        empty_email = TestData.generateEmptyEmail();
         registrationPage = new RegistrationPage(driver);
         header = new HeaderComponent(driver);
     }
@@ -90,7 +88,7 @@ public class LoginTest extends BaseTest {
         //1. Нажатие на логин
         header.openLogin();
         //2. Процесс авторизации (Ввод email и пароль)
-        loginPage.loginUser(empty_email, TestData.PASSWORD);
+        loginPage.loginUser(TestData.EMPTY_EMAIL, TestData.PASSWORD);
         //Ожидаемое поведение: ошибка авторизации
         Assertions.assertTrue(loginPage.isAuthorizationUnsuccessful());
     }

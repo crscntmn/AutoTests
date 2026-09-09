@@ -3,6 +3,7 @@ package auto.tests.components;
 import auto.tests.pages.BasePage;
 import org.openqa.selenium.By;
 import org.openqa.selenium.WebDriver;
+import org.openqa.selenium.support.ui.ExpectedConditions;
 
 public class HeaderComponent extends BasePage {
 
@@ -16,6 +17,7 @@ public class HeaderComponent extends BasePage {
     private final By logoutButton = By.cssSelector(".ico-logout");
     private final By cartQty = By.cssSelector(".cart-qty");
     private final By successfulAddToCart = By.cssSelector(".bar-notification.success");
+    private final By notification = By.id("bar-notification");
 //    private final By searchField = By.id("small-searchterms");
 //    private final By searchButton = By.cssSelector(".button-1.search-box-button");
 
@@ -28,6 +30,7 @@ public class HeaderComponent extends BasePage {
     }
 
     public void openCart() {
+        waitInvisible(notification);
         click(cartButton);
     }
 

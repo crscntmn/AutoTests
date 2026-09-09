@@ -12,6 +12,7 @@ public class TestData {
     public static final String EMPTY_NAME = "";
     public static final String LASTNAME = "lastName";
     public static final String EMPTY_LASTNAME = "";
+    public static final String EMPTY_EMAIL = "";
 
     public static String generateEmail() {
         return "buben" + UUID.randomUUID() + "@mail.ru";
@@ -19,10 +20,6 @@ public class TestData {
 
     public static String generateWrongEmail() {
         return "buben" + UUID.randomUUID();
-    }
-
-    public static String generateEmptyEmail() {
-        return "";
     }
 
     public static String generateEmailWithSpace() {
