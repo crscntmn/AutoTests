@@ -147,7 +147,7 @@ public class CartTest extends BaseTest {
         //3. Удаление ноутбука из корзины
         cartPage.removeFromCart();
         //Ожидаемое поведение: корзина пуста
-        Assertions.assertTrue(cartPage.isCartEmpty());
+        Assertions.assertEquals(0, cartPage.getCountItemsInCart());
     }
 
     @Test
@@ -173,7 +173,7 @@ public class CartTest extends BaseTest {
         //3. Изменение количества товара с 1 на 0
         cartPage.changeCountInCart(0);
         //Ожидаемое поведение: корзина пуста
-        Assertions.assertTrue(cartPage.isCartEmpty());
+        Assertions.assertEquals(0, cartPage.getCountItemsInCart());
     }
 
     @Test
