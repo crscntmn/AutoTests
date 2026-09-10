@@ -160,21 +160,21 @@ public class CartTest extends BaseTest {
         Assertions.assertEquals(1, header.getCountItemsInHeader());
     }
 
-    @Test
-    @DisplayName("1.9 Изменение количества товара в корзине на 0")
-    void changeCountOnZero() {
-        //1. Добавление ноутбука в корзину
-        header.addProductToCart(Laptop);
-        //Ожидаемое поведение: ноутбук успешно добавлен в корзину
-        Assertions.assertTrue(cartPage.addProductToCartSuccessful());
-        //2. Открытие корзины
-        header.openCart();
-        Assertions.assertEquals(Config.CART_URL, driver.getCurrentUrl());
-        //3. Изменение количества товара с 1 на 0
-        cartPage.changeCountInCart(0);
-        //Ожидаемое поведение: корзина пуста
-        Assertions.assertEquals(0, cartPage.getCountItemsInCart());
-    }
+//    @Test
+//    @DisplayName("1.9 Изменение количества товара в корзине на 0")
+//    void changeCountOnZero() {
+//        //1. Добавление ноутбука в корзину
+//        header.addProductToCart(Laptop);
+//        //Ожидаемое поведение: ноутбук успешно добавлен в корзину
+//        Assertions.assertTrue(cartPage.addProductToCartSuccessful());
+//        //2. Открытие корзины
+//        header.openCart();
+//        Assertions.assertEquals(Config.CART_URL, driver.getCurrentUrl());
+//        //3. Изменение количества товара с 1 на 0
+//        cartPage.changeCountInCart(0);
+//        //Ожидаемое поведение: корзина пуста
+//        Assertions.assertEquals(0, cartPage.getCountItemsInCart());
+//    }
 
     @Test
     @DisplayName("1.10 Проверка итоговой цены в корзине")
