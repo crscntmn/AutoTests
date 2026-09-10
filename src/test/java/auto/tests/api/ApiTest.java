@@ -27,7 +27,7 @@ public class ApiTest {
 
     @Test
     void sendPost() {
-        given()
+        Response response = given()
                 .contentType("application/json")
                 .body("""
 
@@ -38,12 +38,16 @@ public class ApiTest {
                         }
                 """)
                 .when()
-                .post("https://jsonplaceholder.typicode.com/posts")
-                .then()
-                .statusCode(201)
-                .body("title", equalTo("MyTest"))
-                .body("body", equalTo("REST Assured"))
-                .body("userId", equalTo(1));
+                .post("https://jsonplaceholder.typicode.com/posts");
+                String title = response.jsonPath().getString("title");
+                String body = response.jsonPath().getString("body");
+                int userId = response.jsonPath().getInt("userId");
+                Assertions.assertEquals(201, response.statusCode());
+                Assertions.assertEquals("MyTest", title);
+                Assertions.assertEquals("REST Assured", body);
+                Assertions.assertEquals(1, userId);
+
+
     }
 
     @Test
