@@ -169,6 +169,7 @@ public class CartTest extends BaseTest {
         Assertions.assertTrue(cartPage.addProductToCartSuccessful());
         //2. Открытие корзины
         header.openCart();
+        Assertions.assertEquals(Config.CART_URL, driver.getCurrentUrl());
         //3. Изменение количества товара с 1 на 0
         cartPage.changeCountInCart(0);
         //Ожидаемое поведение: корзина пуста
