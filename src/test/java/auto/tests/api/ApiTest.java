@@ -39,10 +39,10 @@ public class ApiTest {
                 """)
                 .when()
                 .post("https://jsonplaceholder.typicode.com/posts");
+                Assertions.assertEquals(201, response.statusCode());
                 String title = response.jsonPath().getString("title");
                 String body = response.jsonPath().getString("body");
                 int userId = response.jsonPath().getInt("userId");
-                Assertions.assertEquals(201, response.statusCode());
                 Assertions.assertEquals("MyTest", title);
                 Assertions.assertEquals("REST Assured", body);
                 Assertions.assertEquals(1, userId);
@@ -92,5 +92,51 @@ public class ApiTest {
                 Assertions.assertEquals(200, response.statusCode());
                 String body = response.getBody().asString();
                 Assertions.assertEquals("{}", body);
+    }
+
+    @Test
+    void updatePost() {
+        Response response = given()
+                .contentType("application/json")
+                .body("""
+                            {
+                                "id": 1,
+                                "title": "Updated title",
+                                "body": "Updated body",
+                                "userId": 1
+                            }
+                """)
+                .when()
+                .put("https://jsonplaceholder.typicode.com/posts/1");
+                Assertions.assertEquals(200, response.statusCode());
+                String title = response.jsonPath().getString("title");
+                String body = response.jsonPath().getString("body");
+                Assertions.assertEquals("Updated title", title);
+                Assertions.assertEquals("Updated body", body);
+    }
+
+    @Test
+    void patchPost() {
+        Response response = given()
+                .contentType("application/json")
+                .body("""
+                        {
+                             "title": "Patched title"
+                        }
+                """)
+                .when()
+                .patch("https://jsonplaceholder.typicode.com/posts/1");
+                Assertions.assertEquals(200, response.statusCode());
+                Assertions.assertEquals("Patched title", response.jsonPath().getString("title"));
+                Assertions.assertEquals(1, response.jsonPath().getInt("id"));
+    }
+
+    @Test
+    void getPostByUser () {
+        Response response = given()
+                .queryParam("userId", 1)
+                .when()
+                .get("https://jsonplaceholder.typicode.com/posts");
+                Assertions.assertEquals(200 ,response.statusCode());
     }
 }
