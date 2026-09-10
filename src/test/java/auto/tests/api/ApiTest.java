@@ -79,4 +79,14 @@ public class ApiTest {
         Assertions.assertEquals(100, count);
         Assertions.assertEquals(100, lastPostId);
     }
+
+    @Test
+    void deletePost() {
+        Response response = given()
+                .when()
+                .delete("https://jsonplaceholder.typicode.com/posts/1");
+                Assertions.assertEquals(200, response.statusCode());
+                String body = response.getBody().asString();
+                Assertions.assertEquals("{}", body);
+    }
 }
