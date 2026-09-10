@@ -11,7 +11,6 @@ import org.junit.jupiter.api.Tag;
 public class RegistrationTest extends BaseTest {
     String EMAIL;
     String WRONG_EMAIL;
-//    String EMPTY_EMAIL;
     String EMAIL_WITH_SPACE;
     String EMAIL_WITH_CAPS;
     RegistrationPage registrationPage;
@@ -21,7 +20,6 @@ public class RegistrationTest extends BaseTest {
     void setUp() {
         EMAIL = TestData.generateEmail();
         WRONG_EMAIL = TestData.generateWrongEmail();
-//        EMPTY_EMAIL = TestData.generateEmptyEmail();
         EMAIL_WITH_SPACE = TestData.generateEmailWithSpace();
         EMAIL_WITH_CAPS = TestData.generateEmailWithCaps();
         registrationPage = new RegistrationPage(driver);
