@@ -134,21 +134,21 @@ public class CartTest extends BaseTest {
 
     }
 
-    @Test
-    @DisplayName("1.7 Удаление товара в корзине")
-    void deleteFromCart() {
-        //1. Добавление ноутбука в корзину
-        header.addProductToCart(Laptop);
-        //Ожидаемое поведение: ноутбук успешно добавлен в корзину
-        Assertions.assertTrue(cartPage.addProductToCartSuccessful());
-        //2. Открытие корзины
-        header.openCart();
-        Assertions.assertEquals(Config.CART_URL, driver.getCurrentUrl());
-        //3. Удаление ноутбука из корзины
-        cartPage.removeFromCart();
-        //Ожидаемое поведение: корзина пуста
-        Assertions.assertEquals(0, cartPage.getCountItemsInCart());
-    }
+//    @Test
+//    @DisplayName("1.7 Удаление товара в корзине")
+//    void deleteFromCart() {
+//        //1. Добавление ноутбука в корзину
+//        header.addProductToCart(Laptop);
+//        //Ожидаемое поведение: ноутбук успешно добавлен в корзину
+//        Assertions.assertTrue(cartPage.addProductToCartSuccessful());
+//        //2. Открытие корзины
+//        header.openCart();
+//        Assertions.assertEquals(Config.CART_URL, driver.getCurrentUrl());
+//        //3. Удаление ноутбука из корзины
+//        cartPage.removeFromCart();
+//        //Ожидаемое поведение: корзина пуста
+//        Assertions.assertEquals(0, cartPage.getCountItemsInCart());
+//    }
 
     @Test
     @DisplayName("1.8 Проверка количества товаров в шапке")

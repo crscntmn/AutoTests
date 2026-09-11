@@ -123,5 +123,19 @@ public class ApiTest {
                 .when()
                 .get("https://jsonplaceholder.typicode.com/posts");
         Assertions.assertEquals(200, response.statusCode());
+        List<Integer> userIds = response.jsonPath().getList("userId");
+        Assertions.assertTrue(userIds.stream().allMatch(id -> id == 1));
+        }
+
+        @Test
+        @DisplayName("1.9 GET запрос с заголовками")
+        void checkResponseHeader() {
+            Response response = given()
+                    .when()
+                    .header("Accept", "application/json")
+                    .get("https://jsonplaceholder.typicode.com/posts/1");
+            String contentType = response.getHeader("Content-Type");
+            Assertions.assertTrue(contentType.contains("application/json"));
+
+        }
     }
-}
