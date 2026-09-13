@@ -1,7 +1,10 @@
 package auto.tests.api;
 
+import auto.tests.api.model.User;
+import io.restassured.RestAssured;
 import io.restassured.response.Response;
 import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
@@ -17,9 +20,15 @@ public class ApiTest {
     @DisplayName("1.1 GET запрос поста с id 1")
     void getPost() {
         Response response = given()
+                .spec(ApiConfig.requestSpec())
+                .log().ifValidationFails()
                 .when()
-                .get("https://jsonplaceholder.typicode.com/posts/1");
-        Assertions.assertEquals(200, response.statusCode());
+                .get("/posts/1")
+                .then()
+                .log().ifValidationFails()
+                .spec(ApiConfig.responseSpec())
+                .extract()
+                .response();
         Assertions.assertEquals(1, response.jsonPath().getInt("id"));
         Assertions.assertEquals(1, response.jsonPath().getInt("userId"));
         Assertions.assertEquals("sunt aut facere repellat provident occaecati excepturi optio reprehenderit", response.jsonPath().getString("title"));
@@ -102,15 +111,18 @@ public class ApiTest {
     @DisplayName("1.7 PATCH запрос существующего поста")
     void patchPost() {
         Response response = given()
-                .contentType("application/json")
+                .spec(ApiConfig.requestSpec())
                 .body("""
                                 {
                                      "title": "Patched title"
                                 }
                         """)
                 .when()
-                .patch("https://jsonplaceholder.typicode.com/posts/1");
-        Assertions.assertEquals(200, response.statusCode());
+                .patch("/posts/1")
+                .then()
+                .spec(ApiConfig.responseSpec())
+                .extract()
+                .response();
         Assertions.assertEquals("Patched title", response.jsonPath().getString("title"));
         Assertions.assertEquals(1, response.jsonPath().getInt("id"));
     }
@@ -136,6 +148,57 @@ public class ApiTest {
                     .get("https://jsonplaceholder.typicode.com/posts/1");
             String contentType = response.getHeader("Content-Type");
             Assertions.assertTrue(contentType.contains("application/json"));
-
         }
+
+        @Test
+        @DisplayName("1.10 GET запрос поста с передачей id в pathParam")
+        void getPostById() {
+            Response response = given()
+                    .spec(ApiConfig.requestSpec())
+                    .pathParam("id", 1)
+                    .when()
+                    .get("/posts/{id}")
+                    .then()
+                    .spec(ApiConfig.responseSpec())
+                    .extract()
+                    .response();
+            Assertions.assertEquals(1, response.jsonPath().getInt("id"));
+        }
+
+        @Test
+        @DisplayName("1.11 POST запрос на создание пользователя")
+        void createUser() {
+            User user = new User("buben", "buben", "buben@mail.ru");
+            Response response = given()
+                    .spec(ApiConfig.requestSpec())
+                    .body(user)
+                    .when()
+                    .post("/users")
+                    .then()
+                    .spec(ApiConfig.createdResponseSpec())
+                    .extract()
+                    .response();
+            Assertions.assertEquals("buben", response.jsonPath().getString("name"));
+            Assertions.assertEquals("buben", response.jsonPath().getString("username"));
+            Assertions.assertEquals("buben@mail.ru", response.jsonPath().getString("email"));
+            int id = response.jsonPath().getInt("id");
+            System.out.println(id);
+        }
+
+    @Test
+    @DisplayName("1.12 GET запрос пользователя с преобразованием ответа в User")
+    void getUser() {
+        Response response = given()
+                .spec(ApiConfig.requestSpec())
+                .when()
+                .get("/users/1")
+                .then()
+                .spec(ApiConfig.responseSpec())
+                .extract()
+                .response();
+        User user = response.as(User.class);
+        Assertions.assertEquals("Leanne Graham", user.getName());
+        Assertions.assertEquals("Bret", user.getUsername());
+        Assertions.assertEquals("Sincere@april.biz", user.getEmail());
+    }
     }
