@@ -1,6 +1,8 @@
 package auto.tests.api;
 
+import auto.tests.api.model.Post;
 import auto.tests.api.model.User;
+import auto.tests.api.testdata.ApiTestData;
 import io.restassured.RestAssured;
 import io.restassured.response.Response;
 import org.junit.jupiter.api.Assertions;
@@ -22,16 +24,19 @@ public class ApiTest {
         Response response = given()
                 .spec(ApiConfig.requestSpec())
                 .log().ifValidationFails()
+                .pathParam("id", 1)
                 .when()
-                .get("/posts/1")
+                .get("/posts/{id}")
                 .then()
                 .log().ifValidationFails()
                 .spec(ApiConfig.responseSpec())
                 .extract()
                 .response();
-        Assertions.assertEquals(1, response.jsonPath().getInt("id"));
-        Assertions.assertEquals(1, response.jsonPath().getInt("userId"));
-        Assertions.assertEquals("sunt aut facere repellat provident occaecati excepturi optio reprehenderit", response.jsonPath().getString("title"));
+        Post post = response.as(Post.class);
+        Assertions.assertEquals(1, post.getId());
+        Assertions.assertEquals(1, post.getUserId());
+        Assertions.assertEquals("sunt aut facere repellat provident occaecati excepturi optio reprehenderit",
+                post.getTitle());
     }
 
     @Test
@@ -187,7 +192,7 @@ public class ApiTest {
     @Test
     @DisplayName("1.11 POST запрос на создание пользователя")
     void createUser() {
-        User user = new User("buben", "buben", "buben@mail.ru");
+        User user = new User(ApiTestData.USER_NAME, ApiTestData.USER_USERNAME, ApiTestData.USER_EMAIL);
         Response response = given()
                 .spec(ApiConfig.requestSpec())
                 .body(user)
@@ -197,11 +202,11 @@ public class ApiTest {
                 .spec(ApiConfig.createdResponseSpec())
                 .extract()
                 .response();
-        Assertions.assertEquals("buben", response.jsonPath().getString("name"));
-        Assertions.assertEquals("buben", response.jsonPath().getString("username"));
-        Assertions.assertEquals("buben@mail.ru", response.jsonPath().getString("email"));
-        int id = response.jsonPath().getInt("id");
-        System.out.println(id);
+        User responseUser = response.as(User.class);
+        Assertions.assertEquals(ApiTestData.USER_NAME, responseUser.getName());
+        Assertions.assertEquals(ApiTestData.USER_USERNAME, responseUser.getUsername());
+        Assertions.assertEquals(ApiTestData.USER_EMAIL, responseUser.getEmail());
+        Assertions.assertTrue(responseUser.getId() > 0);
     }
 
     @Test
@@ -210,14 +215,39 @@ public class ApiTest {
         Response response = given()
                 .spec(ApiConfig.requestSpec())
                 .when()
-                .get("/users/1")
+                .pathParam("id", 1)
+                .get("/users/{id}")
                 .then()
                 .spec(ApiConfig.responseSpec())
                 .extract()
                 .response();
         User user = response.as(User.class);
         Assertions.assertEquals("Leanne Graham", user.getName());
+        Assertions.assertEquals(1, user.getId());
         Assertions.assertEquals("Bret", user.getUsername());
         Assertions.assertEquals("Sincere@april.biz", user.getEmail());
+    }
+
+    @Test
+    @DisplayName("1.13 PUT обновление пользователя через POJO")
+    void updateUser() {
+
+        User user = new User("Updated name", "Updated username", "Updated@mail.ru");
+
+        Response response = given()
+                .spec(ApiConfig.requestSpec())
+                .body(user)
+                .when()
+                .pathParam("id", 1)
+                .put("/users/{id}")
+                .then()
+                .spec(ApiConfig.responseSpec())
+                .extract()
+                .response();
+
+        User responseUser = response.as(User.class);
+        Assertions.assertEquals("Updated name", responseUser.getName());
+        Assertions.assertEquals("Updated username", responseUser.getUsername());
+        Assertions.assertEquals("Updated@mail.ru", responseUser.getEmail());
     }
 }
