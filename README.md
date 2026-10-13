@@ -442,8 +442,8 @@ Docker Compose is used to orchestrate:
 │           │ WebDriver │
 │           ▼           │
 │  ┌─────────────────┐  │
-│  │    AutoTests     │  │
-│  │      Maven       │  │
+│  │    AutoTests    │  │
+│  │      Maven      │  │
 │  └─────────────────┘  │
 │                       │
 └───────────────────────┘
