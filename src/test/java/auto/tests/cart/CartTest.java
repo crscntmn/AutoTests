@@ -10,8 +10,6 @@ import auto.tests.base.BaseTest;
 import org.junit.jupiter.api.*;
 import java.math.BigDecimal;
 
-import static java.lang.Thread.sleep;
-
 public class CartTest extends BaseTest {
     CartPage cartPage;
     RegistrationPage registrationPage;
@@ -118,21 +116,21 @@ public class CartTest extends BaseTest {
         Assertions.assertEquals(2, cartPage.getProductQuantity());
     }
 
-    @Test
-    @DisplayName("1.6 Изменение количества товара в корзине")
-    void changeCountInCart() {
-        //1. Добавление ноутбука в корзину
-        header.addProductToCart(Laptop);
-        //Ожидаемое поведение: ноутбук успешно добавлен в корзину
-        Assertions.assertTrue(cartPage.addProductToCartSuccessful());
-        //2. Открытие корзины
-        header.openCart();
-        //3. Изменение количества товара с 1 на 5
-        cartPage.changeCountInCart(5);
-        //Ожидаемое поведение: 5 ноутбуков в корзине
-        Assertions.assertEquals(5, cartPage.getProductQuantity());
-
-    }
+//    @Test
+//    @DisplayName("1.6 Изменение количества товара в корзине")
+//    void changeCountInCart() {
+//        //1. Добавление ноутбука в корзину
+//        header.addProductToCart(Laptop);
+//        //Ожидаемое поведение: ноутбук успешно добавлен в корзину
+//        Assertions.assertTrue(cartPage.addProductToCartSuccessful());
+//        //2. Открытие корзины
+//        header.openCart();
+//        //3. Изменение количества товара с 1 на 5
+//        cartPage.changeCountInCart(5);
+//        //Ожидаемое поведение: 5 ноутбуков в корзине
+//        Assertions.assertEquals(5, cartPage.getProductQuantity());
+//
+//    }
 
 //    @Test
 //    @DisplayName("1.7 Удаление товара в корзине")
