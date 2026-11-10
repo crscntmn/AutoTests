@@ -12,30 +12,27 @@
 ![GitHub Actions](https://img.shields.io/badge/GitHub%20Actions-CI%2FCD-black)
 ![Allure](https://img.shields.io/badge/Allure-reporting-ff69b4)
 
-                    AutoTests
-                       │
-          ┌────────────┴────────────┐
-          │                         │
-      UI Testing                API Testing
-          │                         │
-   Page Objects               REST Assured
-          │                         │
-      Selenium                   POJO
-          │                         │
-          └────────────┬────────────┘
-                       │
-                  JUnit 5
-                       │
-             ┌─────────┴─────────┐
-             │                   │
-        GitHub Actions        Docker
-             │                   │
-             └─────────┬─────────┘
-                       │
-                 Allure Report
-                       │
-                  GitHub Pages
-
+```mermaid
+flowchart TD
+    A[AutoTests]
+    A --> UI[UI Testing]
+    A --> API[API Testing]
+    UI --> PO[Page Objects]
+    UI --> SEL[Selenium WebDriver]
+    API --> RA[REST Assured]
+    API --> POJO[POJO Models]
+    PO --> JUNIT[JUnit 5]
+    SEL --> JUNIT
+    RA --> JUNIT
+    POJO --> JUNIT
+    JUNIT --> CI[GitHub Actions]
+    CI --> SELCI[Selenium CI]
+    CI --> DOCKER[Docker Selenium CI]
+    SELCI --> ALLURE[Allure Report]
+    DOCKER --> ALLURE
+    ALLURE --> PAGES[GitHub Pages]
+```
+                  
 A Java-based test automation framework demonstrating UI and API testing, Page Object Model, test categorization, Docker-based execution, CI/CD with GitHub Actions, and Allure reporting.
 
 The project uses [Demo Web Shop](https://demowebshop.tricentis.com/) as the main UI testing application and [JSONPlaceholder](https://jsonplaceholder.typicode.com/) for API testing.
