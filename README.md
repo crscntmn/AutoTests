@@ -1,7 +1,10 @@
 # AutoTests — Java Selenium Automation Framework
 
+![CI Orchestrator](https://github.com/crscntmn/AutoTests/actions/workflows/ci-orchestrator.yml/badge.svg)
+![Selenium CI](https://github.com/crscntmn/AutoTests/actions/workflows/ci.yml/badge.svg)
+![Docker Selenium CI](https://github.com/crscntmn/AutoTests/actions/workflows/docker-ci.yml/badge.svg)
 ![Java](https://img.shields.io/badge/Java-17%2B-orange)
-![Selenium](https://img.shields.io/badge/Selenium-4.48.0-green)
+![Selenium](https://img.shields.io/badge/Selenium-4.52.0-green)
 ![JUnit](https://img.shields.io/badge/JUnit-5.10.2-blue)
 ![Maven](https://img.shields.io/badge/Maven-build-red)
 ![REST Assured](https://img.shields.io/badge/REST%20Assured-5.5.6-brightgreen)
@@ -9,6 +12,27 @@
 ![GitHub Actions](https://img.shields.io/badge/GitHub%20Actions-CI%2FCD-black)
 ![Allure](https://img.shields.io/badge/Allure-reporting-ff69b4)
 
+```mermaid
+flowchart TD
+    A[AutoTests]
+    A --> UI[UI Testing]
+    A --> API[API Testing]
+    UI --> PO[Page Objects]
+    UI --> SEL[Selenium WebDriver]
+    API --> RA[REST Assured]
+    API --> POJO[POJO Models]
+    PO --> JUNIT[JUnit 5]
+    SEL --> JUNIT
+    RA --> JUNIT
+    POJO --> JUNIT
+    JUNIT --> CI[GitHub Actions]
+    CI --> SELCI[Selenium CI]
+    CI --> DOCKER[Docker Selenium CI]
+    SELCI --> ALLURE[Allure Report]
+    DOCKER --> ALLURE
+    ALLURE --> PAGES[GitHub Pages]
+```
+                  
 A Java-based test automation framework demonstrating UI and API testing, Page Object Model, test categorization, Docker-based execution, CI/CD with GitHub Actions, and Allure reporting.
 
 The project uses [Demo Web Shop](https://demowebshop.tricentis.com/) as the main UI testing application and [JSONPlaceholder](https://jsonplaceholder.typicode.com/) for API testing.
@@ -45,7 +69,7 @@ The framework includes:
 | Technology | Purpose |
 |---|---|
 | Java 17+ | Programming language |
-| Selenium WebDriver 4.48.0 | UI test automation |
+| Selenium WebDriver 4.52.0 | UI test automation |
 | JUnit 5.10.2 | Test framework |
 | Maven | Build and dependency management |
 | WebDriverManager 6.1.0 | WebDriver management |
