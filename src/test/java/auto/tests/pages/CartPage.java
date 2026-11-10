@@ -81,6 +81,8 @@ public class CartPage extends BasePage {
     public void changeCountInCart(int quantity) {
         type(qty, String.valueOf(quantity));
         click(updateShoppingCartButton);
+        //временно
+        wait.until(driver -> String.valueOf(quantity).equals(driver.findElement(qty).getAttribute("value")));
     }
 
     public void removeFromCart() {

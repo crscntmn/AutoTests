@@ -3,18 +3,14 @@ package auto.tests.api;
 import auto.tests.api.model.Post;
 import auto.tests.api.model.User;
 import auto.tests.api.testdata.ApiTestData;
-import io.restassured.RestAssured;
 import io.restassured.response.Response;
 import org.junit.jupiter.api.Assertions;
-import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 import java.util.List;
-import java.util.Map;
 
-import static io.restassured.RestAssured.*;
-import static org.hamcrest.Matchers.equalTo;
+import static io.restassured.RestAssured.given;
 
 public class ApiTest {
 
@@ -23,12 +19,12 @@ public class ApiTest {
     void getPost() {
         Response response = given()
                 .spec(ApiConfig.requestSpec())
-                .log().ifValidationFails()
+                .log().all()
                 .pathParam("id", 1)
                 .when()
                 .get("/posts/{id}")
                 .then()
-                .log().ifValidationFails()
+                .log().all()
                 .spec(ApiConfig.responseSpec())
                 .extract()
                 .response();
@@ -39,13 +35,15 @@ public class ApiTest {
                 post.getTitle());
     }
 
+
     @Test
     @DisplayName("1.2 POST запрос поста")
     void sendPost() {
         Response response = given()
                 .spec(ApiConfig.requestSpec())
+                .log().all()
                 .body("""
-                        
+
                                 {
                                         "title": "MyTest",
                                         "body": "REST Assured",
@@ -55,15 +53,14 @@ public class ApiTest {
                 .when()
                 .post("/posts")
                 .then()
+                .log().all()
                 .spec(ApiConfig.createdResponseSpec())
                 .extract()
                 .response();
         Assertions.assertEquals("MyTest", response.jsonPath().getString("title"));
         Assertions.assertEquals("REST Assured", response.jsonPath().getString("body"));
         Assertions.assertEquals(1, response.jsonPath().getInt("userId"));
-
-
-    }
+        }
 
     @Test
     @DisplayName("1.3 GET запрос несуществующего поста")
