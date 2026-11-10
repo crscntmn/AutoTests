@@ -1,7 +1,10 @@
 # AutoTests — Java Selenium Automation Framework
 
+![CI Orchestrator](https://github.com/crscntmn/AutoTests/actions/workflows/ci-orchestrator.yml/badge.svg)
+![Selenium CI](https://github.com/crscntmn/AutoTests/actions/workflows/ci.yml/badge.svg)
+![Docker Selenium CI](https://github.com/crscntmn/AutoTests/actions/workflows/docker-ci.yml/badge.svg)
 ![Java](https://img.shields.io/badge/Java-17%2B-orange)
-![Selenium](https://img.shields.io/badge/Selenium-4.48.0-green)
+![Selenium](https://img.shields.io/badge/Selenium-4.52.0-green)
 ![JUnit](https://img.shields.io/badge/JUnit-5.10.2-blue)
 ![Maven](https://img.shields.io/badge/Maven-build-red)
 ![REST Assured](https://img.shields.io/badge/REST%20Assured-5.5.6-brightgreen)
@@ -45,7 +48,7 @@ The framework includes:
 | Technology | Purpose |
 |---|---|
 | Java 17+ | Programming language |
-| Selenium WebDriver 4.48.0 | UI test automation |
+| Selenium WebDriver 4.52.0 | UI test automation |
 | JUnit 5.10.2 | Test framework |
 | Maven | Build and dependency management |
 | WebDriverManager 6.1.0 | WebDriver management |
