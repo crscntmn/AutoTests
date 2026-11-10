@@ -1,7 +1,27 @@
 package auto.tests.config;
 
-public class Config {
+public final class Config {
 
-    public static final String URL = "https://demowebshop.tricentis.com/";
-    public static final String CART_URL = "https://demowebshop.tricentis.com/cart";
+    private Config() {
+    }
+
+    private static String getConfigValue(String name, String defaultValue) {
+        String systemProperty = System.getProperty(name);
+
+        if (systemProperty != null && !systemProperty.isBlank()) {
+            return systemProperty;
+        }
+
+        String environmentVariable = System.getenv(name);
+
+        if (environmentVariable != null && !environmentVariable.isBlank()) {
+            return environmentVariable;
+        }
+
+        return defaultValue;
+    }
+
+    public static String getBaseUrl() {
+        return getConfigValue("BASE_URL", "https://demowebshop.tricentis.com/");
+    }
 }

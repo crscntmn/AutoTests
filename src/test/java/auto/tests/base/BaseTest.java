@@ -29,7 +29,7 @@ public class BaseTest {
         }
 
         driver.manage().window().setSize(new Dimension(1920, 1080));
-        driver.get(Config.URL);
+        driver.get(Config.getBaseUrl());
     }
 
     private WebDriver createLocalDriver(String browser, boolean ci) {
