@@ -3,8 +3,6 @@ package auto.tests.driver;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.chrome.ChromeDriver;
 import org.openqa.selenium.chrome.ChromeOptions;
-import org.openqa.selenium.edge.EdgeOptions;
-import org.openqa.selenium.firefox.FirefoxOptions;
 import org.openqa.selenium.remote.RemoteWebDriver;
 
 import java.net.URL;
@@ -56,24 +54,6 @@ public final class DriverFactory {
     ) throws Exception {
 
         switch (browser) {
-
-            case "firefox":
-
-                FirefoxOptions firefoxOptions = new FirefoxOptions();
-
-                return new RemoteWebDriver(
-                        new URL(remoteUrl),
-                        firefoxOptions
-                );
-
-            case "edge":
-
-                EdgeOptions edgeOptions = new EdgeOptions();
-
-                return new RemoteWebDriver(
-                        new URL(remoteUrl),
-                        edgeOptions
-                );
 
             case "chrome":
 
