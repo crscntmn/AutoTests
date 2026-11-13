@@ -1,12 +1,11 @@
 package auto.tests.cart;
 
 import auto.tests.components.HeaderComponent;
-import auto.tests.config.Config;
 import auto.tests.pages.CartPage;
 import auto.tests.pages.LoginPage;
 import auto.tests.pages.RegistrationPage;
 import auto.tests.testdata.TestData;
-import auto.tests.base.BaseTest;
+import auto.tests.framework.base.BaseTest;
 import org.junit.jupiter.api.*;
 import java.math.BigDecimal;
 

@@ -4,7 +4,7 @@ import java.util.UUID;
 
 public class TestData {
     public static final String PASSWORD = getEnvOrDefault("PASSWORD", "buben12345");
-    public static final String SHORT_PASSWORD = getEnvOrDefault("PASSWORD", "buben1");
+    public static final String SHORT_PASSWORD = getEnvOrDefault("SHORT_PASSWORD", "buben1");
     public static final String INVALIDATE_PASSWORD = getEnvOrDefault("INVALIDATE_PASSWORD", "buben");
     public static final String WRONG_PASSWORD = getEnvOrDefault("WRONG_PASSWORD", "buben12346");
     public static final String EMPTY_PASSWORD = "";
