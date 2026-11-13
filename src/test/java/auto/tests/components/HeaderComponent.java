@@ -1,9 +1,8 @@
 package auto.tests.components;
 
-import auto.tests.pages.BasePage;
+import auto.tests.framework.pages.BasePage;
 import org.openqa.selenium.By;
 import org.openqa.selenium.WebDriver;
-import org.openqa.selenium.support.ui.ExpectedConditions;
 
 public class HeaderComponent extends BasePage {
 

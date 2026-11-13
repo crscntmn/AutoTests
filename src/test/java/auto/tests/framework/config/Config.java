@@ -1,4 +1,6 @@
-package auto.tests.config;
+package auto.tests.framework.config;
+
+import java.time.Duration;
 
 public final class Config {
 
@@ -23,5 +25,10 @@ public final class Config {
 
     public static String getBaseUrl() {
         return getConfigValue("BASE_URL", "https://demowebshop.tricentis.com/");
+    }
+
+    public static Duration getUiTimeout() {
+        String timeout = System.getenv().getOrDefault("UI_TIMEOUT", "10");
+        return Duration.ofSeconds(Long.parseLong(timeout));
     }
 }

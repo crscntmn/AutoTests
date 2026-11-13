@@ -1,7 +1,7 @@
-package auto.tests.base;
+package auto.tests.framework.base;
 
-import auto.tests.config.Config;
-import auto.tests.driver.DriverFactory;
+import auto.tests.framework.config.Config;
+import auto.tests.framework.driver.DriverFactory;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.openqa.selenium.Dimension;

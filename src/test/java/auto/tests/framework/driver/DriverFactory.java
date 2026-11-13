@@ -1,4 +1,4 @@
-package auto.tests.driver;
+package auto.tests.framework.driver;
 
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.chrome.ChromeDriver;
