@@ -12,11 +12,11 @@
 ![GitHub Actions](https://img.shields.io/badge/GitHub%20Actions-CI%2FCD-black)
 ![Allure](https://img.shields.io/badge/Allure-reporting-ff69b4)
 
-A Java-based test automation project demonstrating UI and API testing, Page Object Model, reusable framework components, test categorization, Docker-based execution, GitHub Actions CI/CD, and Allure reporting.
+Java-проект по автоматизации тестирования, демонстрирующий UI- и API-тестирование, использование Page Object Model, переиспользуемых компонентов фреймворка, категоризацию тестов, запуск в Docker, CI/CD через GitHub Actions и формирование отчётов Allure.
 
-The project uses [Demo Web Shop](https://demowebshop.tricentis.com/) as the main UI testing application and [JSONPlaceholder](https://jsonplaceholder.typicode.com/) for API testing.
+В качестве основного приложения для UI-тестирования используется [Demo Web Shop](https://demowebshop.tricentis.com/), а для API-тестирования — [JSONPlaceholder](https://jsonplaceholder.typicode.com/).
 
-## Architecture Overview
+## Обзор архитектуры
 
 ```mermaid
 flowchart TD
@@ -52,63 +52,63 @@ flowchart TD
     ALLURE --> PAGES[GitHub Pages]
 ```
 
-## About the Project
+## О проекте
 
-The project is structured so that reusable automation infrastructure is separated from application-specific test code.
+Проект построен таким образом, чтобы переиспользуемая инфраструктура автоматизации была отделена от кода, специфичного для конкретного приложения.
 
-### Reusable framework
+### Переиспользуемый фреймворк
 
-The `framework` package contains the parts that can be reused when starting automation for another web application:
+Пакет `framework` содержит компоненты, которые можно повторно использовать при запуске автоматизации для другого веб-приложения:
 
 - `BaseTest`
 - `BasePage`
 - `DriverFactory`
 - `Config`
 
-The framework provides:
+Фреймворк предоставляет:
 
-- WebDriver lifecycle management
-- local Chrome execution
-- remote Selenium execution
-- configurable base URL
-- configurable UI timeout
-- reusable Selenium actions and waits
+- управление жизненным циклом WebDriver
+- локальный запуск Chrome
+- удалённый запуск Selenium
+- настраиваемый базовый URL
+- настраиваемый UI timeout
+- переиспользуемые Selenium-действия и ожидания
 
-### Application-specific test code
+### Код, специфичный для приложения
 
-The application-specific part contains:
+Часть проекта, специфичная для конкретного приложения, содержит:
 
 - Page Objects
-- UI components
-- UI tests
-- UI test data
-- API configuration
-- API tests
-- API models
-- API test data
+- UI-компоненты
+- UI-тесты
+- данные для UI-тестов
+- конфигурацию API
+- API-тесты
+- API-модели
+- данные для API-тестов
 
-This separation makes the project suitable as a starting point for new automation projects.
+Такое разделение позволяет использовать проект как основу для новых проектов по автоматизации.
 
-## Tech Stack
+## Технологический стек
 
-| Technology | Version | Purpose |
+| Технология | Версия | Назначение |
 |---|---:|---|
-| Java | 17+ | Programming language |
-| Selenium WebDriver | 4.52.0 | UI test automation |
-| JUnit | 5.10.2 | Test framework |
-| Maven | — | Build and dependency management |
-| REST Assured | 5.5.6 | REST API testing |
-| Jackson Databind | 2.18.3 | JSON serialization/deserialization |
-| Allure JUnit 5 | 2.29.1 | Test result integration |
-| Allure CLI | 2.34.1 | CI report generation |
-| Docker | — | Containerized execution |
-| Docker Compose | — | Selenium environment orchestration |
+| Java | 17+ | Язык программирования |
+| Selenium WebDriver | 4.52.0 | UI-автоматизация |
+| JUnit | 5.10.2 | Тестовый фреймворк |
+| Maven | — | Сборка и управление зависимостями |
+| REST Assured | 5.5.6 | REST API-тестирование |
+| Jackson Databind | 2.18.3 | Сериализация/десериализация JSON |
+| Allure JUnit 5 | 2.29.1 | Интеграция результатов тестов |
+| Allure CLI | 2.34.1 | Генерация отчётов в CI |
+| Docker | — | Запуск в контейнерах |
+| Docker Compose | — | Оркестрация Selenium-окружения |
 | GitHub Actions | — | CI/CD |
-| GitHub Pages | — | Allure report hosting |
+| GitHub Pages | — | Размещение Allure-отчётов |
 
-> WebDriverManager is not used. Local Chrome execution relies on Selenium Manager provided by Selenium.
+> WebDriverManager не используется. Для локального запуска Chrome используется Selenium Manager, встроенный в Selenium.
 
-## Project Structure
+## Структура проекта
 
 ```text
 AutoTests/
@@ -173,12 +173,12 @@ AutoTests/
 └── README.md
 ```
 
-## Framework Architecture
+## Архитектура фреймворка
 
-The UI automation follows this structure:
+UI-автоматизация построена следующим образом:
 
 ```text
-Test Classes
+Тестовые классы
      │
      ▼
 Page Objects / Components
@@ -190,7 +190,7 @@ Framework BasePage
 Selenium WebDriver
 ```
 
-Driver creation is centralized in `DriverFactory`:
+Создание драйвера централизовано в `DriverFactory`:
 
 ```text
 BaseTest
@@ -202,80 +202,80 @@ BaseTest
                     └── Remote → RemoteWebDriver
 ```
 
-This keeps browser and execution-environment logic out of individual test classes.
+Это позволяет не размещать логику браузера и окружения выполнения непосредственно в отдельных тестовых классах.
 
-## UI Test Coverage
+## Покрытие UI-тестами
 
-The current project contains **31 UI tests**.
+В текущем проекте **31 UI-тест**.
 
-### Registration
+### Регистрация
 
-The registration suite contains **11 tests** covering:
+Набор тестов регистрации содержит **11 тестов**, покрывающих:
 
-- successful registration
-- empty registration form
-- password mismatch
-- invalid email
-- missing first name
-- missing last name
-- missing email
-- minimum valid password length
-- password below the minimum length
-- email containing spaces
-- email using uppercase characters
+- успешную регистрацию
+- пустую форму регистрации
+- несовпадение паролей
+- некорректный email
+- отсутствие имени
+- отсутствие фамилии
+- отсутствие email
+- минимально допустимую длину пароля
+- пароль меньше минимально допустимой длины
+- email с пробелами
+- email с символами в верхнем регистре
 
-### Login
+### Авторизация
 
-The authentication suite contains **10 tests** covering:
+Набор тестов авторизации содержит **10 тестов**, покрывающих:
 
-- successful login
-- empty login form
-- incorrect password
-- incorrect email
-- empty email
-- empty password
-- password recovery with an invalid email
-- password recovery with an existing email
-- invalid email with an empty password
-- logout
+- успешную авторизацию
+- пустую форму авторизации
+- неправильный пароль
+- неправильный email
+- пустой email
+- пустой пароль
+- восстановление пароля с некорректным email
+- восстановление пароля с существующим email
+- некорректный email с пустым паролем
+- выход из аккаунта
 
-### Shopping Cart
+### Корзина
 
-The shopping cart suite contains **10 tests** covering scenarios such as:
+Набор тестов корзины содержит **10 тестов**, покрывающих такие сценарии, как:
 
-- adding products to the cart
-- checkout restrictions
-- accepting Terms of Service
-- configurable products
-- multiple products
-- adding the same product multiple times
-- changing product quantity
-- cart item counter
-- product price validation
-- subtotal calculation
+- добавление товаров в корзину
+- ограничения при оформлении заказа
+- принятие Terms of Service
+- товары с настройками
+- добавление нескольких товаров
+- повторное добавление одного и того же товара
+- изменение количества товара
+- счётчик товаров в корзине
+- проверка цены товара
+- расчёт subtotal
 
-Prices are handled with `BigDecimal` when calculations are required:
+При необходимости расчёты с денежными значениями выполняются через `BigDecimal`:
 
 ```java
 BigDecimal expectedSubtotal =
         unitPrice.multiply(BigDecimal.valueOf(quantity));
 ```
 
-This avoids using floating-point arithmetic for monetary values.
+Это позволяет избежать использования арифметики с плавающей точкой при работе с денежными значениями.
 
-## API Testing
+## API-тестирование
 
-API automation is implemented using **REST Assured**.
+API-автоматизация реализована с использованием **REST Assured**.
 
-The current API test application is:
+Текущее приложение для API-тестирования:
 
 ```text
 https://jsonplaceholder.typicode.com
 ```
 
-The project contains **13 API tests**.
+Проект содержит **13 API-тестов**.
 
-### Covered HTTP methods
+### Используемые HTTP-методы
 
 ```text
 GET
@@ -285,30 +285,30 @@ PATCH
 DELETE
 ```
 
-### API coverage includes
+### API-покрытие включает
 
-- HTTP status codes
-- response body validation
-- JSON fields
-- response headers
+- проверку HTTP status codes
+- проверку тела ответа
+- проверку JSON-полей
+- проверку response headers
 - query parameters
 - path parameters
-- positive and negative scenarios
-- POJO serialization/deserialization
+- позитивные и негативные сценарии
+- сериализацию/десериализацию через POJO
 
-API responses can be mapped to Java models:
+Ответы API могут преобразовываться в Java-модели:
 
 ```java
 User responseUser = response.as(User.class);
 ```
 
-The API-specific code is intentionally kept outside the reusable UI framework.
+API-код намеренно находится за пределами переиспользуемого UI-фреймворка.
 
 ## Page Object Model
 
-The project uses the Page Object Model to separate test scenarios from Selenium interaction logic.
+Проект использует Page Object Model для разделения тестовых сценариев и Selenium-логики взаимодействия с интерфейсом.
 
-Application-specific Page Objects include:
+Page Objects, специфичные для текущего приложения:
 
 ```text
 RegistrationPage
@@ -317,7 +317,7 @@ CartPage
 CheckoutPage
 ```
 
-The reusable `BasePage` contains common Selenium operations such as:
+Переиспользуемый `BasePage` содержит общие Selenium-операции:
 
 ```text
 click()
@@ -332,40 +332,40 @@ waitInvisible()
 waitClickable()
 ```
 
-This provides:
+Это обеспечивает:
 
-- less duplicated Selenium code
-- centralized locator interaction
-- more readable tests
-- easier maintenance
-- separation between test logic and UI implementation
+- меньше дублирования Selenium-кода
+- централизованное взаимодействие с локаторами
+- более читаемые тесты
+- более простое сопровождение
+- разделение тестовой логики и реализации UI
 
-## Reusable Components
+## Переиспользуемые компоненты
 
-Common UI functionality is extracted into components when it is shared by multiple tests.
+Общая UI-функциональность выносится в компоненты, когда она используется несколькими тестами.
 
-For the current application:
+Для текущего приложения используется:
 
 ```text
 HeaderComponent
 ```
 
-contains common header actions such as:
+Он содержит общие действия с заголовком:
 
-- opening registration
-- opening login
-- opening the shopping cart
-- logging out
-- adding products to the cart
-- reading the cart item counter
+- открытие регистрации
+- открытие авторизации
+- открытие корзины
+- выход из аккаунта
+- добавление товаров в корзину
+- получение количества товаров в корзине
 
-Application-specific components remain outside the reusable framework because they depend on the current application's UI.
+Компоненты, специфичные для приложения, остаются за пределами переиспользуемого фреймворка, поскольку зависят от конкретного UI приложения.
 
-## Explicit Waits
+## Явные ожидания
 
-The framework uses Selenium `WebDriverWait` and `ExpectedConditions` instead of relying on fixed sleeps.
+Фреймворк использует `WebDriverWait` и `ExpectedConditions` из Selenium вместо фиксированных `sleep`.
 
-Examples:
+Примеры:
 
 ```java
 wait.until(ExpectedConditions.elementToBeClickable(locator));
@@ -379,33 +379,33 @@ wait.until(ExpectedConditions.visibilityOfElementLocated(locator));
 wait.until(ExpectedConditions.invisibilityOfElementLocated(locator));
 ```
 
-The default UI timeout is **10 seconds**.
+Значение UI timeout по умолчанию — **10 секунд**.
 
-The timeout can be overridden with:
+Timeout можно изменить через:
 
 ```text
 UI_TIMEOUT
 ```
 
-For example:
+Например:
 
 ```powershell
 $env:UI_TIMEOUT="15"
 mvn clean test
 ```
 
-## Test Data
+## Тестовые данные
 
-UI test data is stored separately from test classes:
+Данные для UI-тестов хранятся отдельно от тестовых классов:
 
 ```text
 testdata/
 └── TestData.java
 ```
 
-Dynamic email addresses are generated with UUIDs so registration tests can create unique users.
+Динамические email-адреса генерируются с использованием UUID, поэтому тесты регистрации могут создавать уникальных пользователей.
 
-Sensitive or environment-specific password values can be provided through environment variables:
+Чувствительные или зависящие от окружения значения паролей могут передаваться через переменные окружения:
 
 ```text
 PASSWORD
@@ -414,63 +414,63 @@ INVALIDATE_PASSWORD
 WRONG_PASSWORD
 ```
 
-Default values are available for local execution.
+Для локального запуска доступны значения по умолчанию.
 
-For CI, the values are provided through GitHub Actions Secrets.
+Для CI эти значения передаются через GitHub Actions Secrets.
 
-## Test Suites
+## Наборы тестов
 
-Tests are categorized using JUnit 5 tags.
+Тесты категоризируются с использованием JUnit 5 tags.
 
 ### Smoke
 
-Smoke tests contain critical positive scenarios.
+Smoke-тесты содержат критические позитивные сценарии.
 
-Run the Smoke suite:
+Запуск Smoke:
 
 ```bash
 mvn clean test -Dgroups=smoke
 ```
 
-The current project contains **4 smoke tests**.
+В текущем проекте **4 smoke-теста**.
 
 ### Regression
 
-Regression tests cover additional validation and negative scenarios.
+Regression-тесты покрывают дополнительную валидацию и негативные сценарии.
 
-Run the Regression suite:
+Запуск Regression:
 
 ```bash
 mvn clean test -Dgroups=regression
 ```
 
-The current project contains **7 regression-tagged tests**.
+В текущем проекте **7 тестов с тегом regression**.
 
-### Full Suite
+### Полный набор
 
-Run all tests:
+Запуск всех тестов:
 
 ```bash
 mvn clean test
 ```
 
-## Test Distribution
+## Распределение тестов
 
-The current `main` branch contains **44 active automated tests**:
+Текущая ветка `main` содержит **44 активных автоматизированных теста**:
 
-| Area | Tests |
+| Область | Тесты |
 |---|---:|
-| Registration | 11 |
-| Login | 10 |
-| Shopping Cart | 10 |
+| Регистрация | 11 |
+| Авторизация | 10 |
+| Корзина | 10 |
 | API | 13 |
-| **Total** | **44** |
+| **Всего** | **44** |
 
-The exact number of tests may change as new scenarios are added.
+Точное количество тестов может изменяться по мере добавления новых сценариев.
 
-## Configuration
+## Конфигурация
 
-The reusable framework configuration is located in:
+Переиспользуемая конфигурация фреймворка находится в:
 
 ```text
 src/test/java/auto/tests/framework/config/Config.java
@@ -478,26 +478,26 @@ src/test/java/auto/tests/framework/config/Config.java
 
 ### Base URL
 
-The UI base URL can be configured using:
+UI base URL может быть настроен через:
 
 1. Java system property
-2. environment variable
-3. default value
+2. переменную окружения
+3. значение по умолчанию
 
-The default value is:
+Значение по умолчанию:
 
 ```text
 https://demowebshop.tricentis.com/
 ```
 
-Example using an environment variable:
+Пример использования переменной окружения:
 
 ```powershell
 $env:BASE_URL="https://example.com"
 mvn clean test
 ```
 
-Example using a Maven system property:
+Пример использования Maven system property:
 
 ```bash
 mvn clean test -DBASE_URL=https://example.com
@@ -505,74 +505,74 @@ mvn clean test -DBASE_URL=https://example.com
 
 ### UI Timeout
 
-The default UI timeout is:
+UI timeout по умолчанию:
 
 ```text
-10 seconds
+10 секунд
 ```
 
-It can be overridden with:
+Его можно изменить через:
 
 ```text
 UI_TIMEOUT
 ```
 
-### Browser and Remote Execution
+### Браузер и удалённый запуск
 
-The driver configuration uses:
+Для настройки драйвера используются:
 
 ```text
 BROWSER
 SELENIUM_REMOTE_URL
 ```
 
-The current framework supports Chrome.
+Текущая версия фреймворка поддерживает Chrome.
 
-If `SELENIUM_REMOTE_URL` is set, `DriverFactory` creates a `RemoteWebDriver`. Otherwise, it creates a local `ChromeDriver`.
+Если задан `SELENIUM_REMOTE_URL`, `DriverFactory` создаёт `RemoteWebDriver`. В противном случае создаётся локальный `ChromeDriver`.
 
-## Local Execution
+## Локальный запуск
 
-### Requirements
+### Требования
 
-Install:
+Необходимо установить:
 
-- Java 17 or higher
+- Java 17 или выше
 - Maven
 - Google Chrome
 - Git
 
-Docker is required only for containerized execution.
+Docker требуется только для запуска в контейнерах.
 
-### Clone the repository
+### Клонирование репозитория
 
 ```bash
 git clone https://github.com/crscntmn/AutoTests.git
 cd AutoTests
 ```
 
-### Run all tests
+### Запуск всех тестов
 
 ```bash
 mvn clean test
 ```
 
-### Run Smoke tests
+### Запуск Smoke
 
 ```bash
 mvn clean test -Dgroups=smoke
 ```
 
-### Run Regression tests
+### Запуск Regression
 
 ```bash
 mvn clean test -Dgroups=regression
 ```
 
-## Docker Execution
+## Запуск в Docker
 
-The project supports running Selenium tests inside Docker.
+Проект поддерживает запуск Selenium-тестов внутри Docker.
 
-Docker Compose starts two services:
+Docker Compose запускает два сервиса:
 
 ```text
 ┌─────────────────────────────┐
@@ -593,25 +593,25 @@ Docker Compose starts two services:
 └─────────────────────────────┘
 ```
 
-The Selenium image is configurable and defaults to:
+Образ Selenium можно настроить. Значение по умолчанию:
 
 ```text
 selenium/standalone-chrome:latest
 ```
 
-The test container connects to Selenium through:
+Тестовый контейнер подключается к Selenium через:
 
 ```text
 SELENIUM_REMOTE_URL=http://selenium:4444/wd/hub
 ```
 
-### Run the full Docker suite
+### Запуск полного набора в Docker
 
 ```bash
 docker compose up --build
 ```
 
-### Run Smoke tests in Docker
+### Запуск Smoke в Docker
 
 Linux/macOS:
 
@@ -626,7 +626,7 @@ $env:TEST_GROUP="smoke"
 docker compose up --build
 ```
 
-### Run Regression tests in Docker
+### Запуск Regression в Docker
 
 Linux/macOS:
 
@@ -641,7 +641,7 @@ $env:TEST_GROUP="regression"
 docker compose up --build
 ```
 
-### Configure UI timeout in Docker
+### Настройка UI timeout в Docker
 
 PowerShell:
 
@@ -650,7 +650,7 @@ $env:UI_TIMEOUT="15"
 docker compose up --build
 ```
 
-The Docker Compose configuration passes the following settings to the test container:
+Docker Compose передаёт в тестовый контейнер следующие настройки:
 
 ```text
 SELENIUM_REMOTE_URL
@@ -665,15 +665,15 @@ TEST_GROUP
 
 ## GitHub Actions CI/CD
 
-The project uses GitHub Actions with reusable workflows.
+Проект использует GitHub Actions с переиспользуемыми workflow.
 
-The main workflow is:
+Основной workflow:
 
 ```text
 CI Orchestrator
 ```
 
-It coordinates:
+Он координирует:
 
 ```text
                     CI Orchestrator
@@ -694,23 +694,23 @@ It coordinates:
                      GitHub Pages
 ```
 
-### Workflow triggers
+### Триггеры workflow
 
-The CI Orchestrator runs on:
+CI Orchestrator запускается при:
 
-- push to `main`
-- push to `develop`
-- pull request to `main`
-- scheduled execution
-- manual execution
+- push в `main`
+- push в `develop`
+- pull request в `main`
+- запланированном запуске
+- ручном запуске
 
-The scheduled workflow runs daily.
+Запланированный workflow запускается ежедневно.
 
-### Manual execution
+### Ручной запуск
 
-The workflow can be started manually from GitHub Actions.
+Workflow можно запустить вручную из GitHub Actions.
 
-Available suites:
+Доступные наборы:
 
 ```text
 all
@@ -718,13 +718,13 @@ smoke
 regression
 ```
 
-This allows a specific test group to be executed without modifying the test code.
+Это позволяет запустить конкретную группу тестов без изменения тестового кода.
 
-## Selenium CI Matrix
+## Матрица Selenium CI
 
-The Selenium CI workflow currently runs:
+В текущей конфигурации Selenium CI запускается:
 
-| Operating System | Java | Browser |
+| Операционная система | Java | Браузер |
 |---|---:|---|
 | Ubuntu | 17 | Chrome |
 | Ubuntu | 21 | Chrome |
@@ -733,37 +733,37 @@ The Selenium CI workflow currently runs:
 | macOS | 17 | Chrome |
 | macOS | 21 | Chrome |
 
-The same test suite is therefore checked across multiple operating systems and Java versions.
+Таким образом, один и тот же набор тестов проверяется на нескольких операционных системах и версиях Java.
 
 ## Docker CI
 
-Docker CI currently runs Selenium Standalone Chrome.
+Docker CI в текущей конфигурации использует Selenium Standalone Chrome.
 
-The workflow:
+Workflow:
 
-1. builds the AutoTests image;
-2. starts the Selenium container;
-3. waits for Selenium to become ready;
-4. runs the tests;
-5. collects Surefire and Allure results;
-6. publishes test artifacts;
-7. fails the workflow if the Docker test run fails.
+1. собирает Docker image AutoTests;
+2. запускает Selenium-контейнер;
+3. ожидает готовности Selenium;
+4. запускает тесты;
+5. собирает результаты Surefire и Allure;
+6. сохраняет тестовые артефакты;
+7. завершает workflow с ошибкой, если Docker-запуск тестов завершился неуспешно.
 
-## Allure Reporting
+## Allure-отчётность
 
-The project uses:
+Проект использует:
 
-- `allure-junit5` to collect test results;
-- Allure CLI to generate reports in CI;
-- GitHub Pages to publish the reports.
+- `allure-junit5` для сбора результатов тестов;
+- Allure CLI для генерации отчётов в CI;
+- GitHub Pages для публикации отчётов.
 
-The Maven Allure plugin is not required by the current CI pipeline.
+Maven-плагин Allure не требуется текущему CI pipeline.
 
-### Live Allure Reports
+### Актуальные Allure-отчёты
 
-**[Open Allure Test Reports](https://crscntmn.github.io/AutoTests/)**
+**[Открыть Allure Test Reports](https://crscntmn.github.io/AutoTests/)**
 
-The published reports are organized into:
+Опубликованные отчёты организованы следующим образом:
 
 ```text
 Allure Reports
@@ -785,128 +785,128 @@ Allure Reports
     └── Chrome
 ```
 
-## CI Artifacts
+## CI-артефакты
 
-The CI workflows store test artifacts including:
+CI workflows сохраняют следующие тестовые артефакты:
 
 - Maven Surefire reports
 - Allure results
-- generated Allure reports
+- сгенерированные Allure reports
 
-These artifacts can be used to investigate failed test executions after a workflow finishes.
+Эти артефакты можно использовать для анализа упавших тестов после завершения workflow.
 
-## Reusing the Framework for a New Project
+## Использование фреймворка для нового проекта
 
-The framework was structured with reuse in mind.
+Фреймворк был спроектирован с учётом повторного использования.
 
-A typical workflow for starting automation for another web application is:
+Типичный процесс запуска автоматизации для другого веб-приложения:
 
 ```text
-1. Clone repository
+1. Клонировать репозиторий
        ↓
-2. Change BASE_URL / Config default
+2. Изменить BASE_URL / значение по умолчанию в Config
        ↓
-3. Remove application-specific Page Objects and tests
+3. Удалить специфичные для приложения Page Objects и тесты
        ↓
-4. Create new Page Objects
+4. Создать новые Page Objects
        ↓
-5. Add application-specific test data
+5. Добавить данные для нового приложения
        ↓
-6. Add new UI tests
+6. Добавить новые UI-тесты
        ↓
-7. Run locally with Maven
+7. Запустить локально через Maven
        ↓
-8. Run in Docker
+8. Запустить в Docker
        ↓
-9. Run through GitHub Actions
+9. Запустить через GitHub Actions
        ↓
-10. Review Allure reports
+10. Проверить Allure-отчёты
 ```
 
-The reusable infrastructure normally does not need to be changed when switching to another ordinary web application.
+Переиспользуемая инфраструктура обычно не требует изменений при переходе на другое обычное веб-приложение.
 
-The main project-specific parts that are expected to change are:
+Основные части проекта, которые предполагается изменять:
 
 - Page Objects
-- UI components
-- test classes
-- test data
-- API tests and models, when API coverage is needed
-- application URL/configuration
+- UI-компоненты
+- тестовые классы
+- тестовые данные
+- API-тесты и модели, если требуется API-покрытие
+- URL/конфигурация приложения
 
-Special client requirements such as authentication infrastructure, proxy configuration, certificates, unusual browsers, or external services may require additional CI/Docker configuration.
+Особые требования клиента, такие как инфраструктура авторизации, proxy configuration, сертификаты, необычные браузеры или внешние сервисы, могут потребовать дополнительных изменений в CI/Docker-конфигурации.
 
-## Framework Design Principles
+## Принципы проектирования фреймворка
 
-The project follows several practical principles:
+Проект следует следующим практическим принципам:
 
 - Page Object Model
-- separation of framework and application-specific code
-- reusable Selenium operations
-- explicit waits
-- centralized configuration
-- centralized test data
-- dynamic test data generation
-- JUnit 5 test tags
-- Maven-based execution
-- Docker-based execution
-- reusable GitHub Actions workflows
-- automated Allure reporting
-- cross-platform CI validation
-- avoiding unnecessary framework complexity
+- разделение фреймворка и кода приложения
+- переиспользуемые Selenium-операции
+- явные ожидания
+- централизованная конфигурация
+- централизованные тестовые данные
+- динамическая генерация тестовых данных
+- JUnit 5 tags
+- запуск через Maven
+- запуск в Docker
+- переиспользуемые GitHub Actions workflows
+- автоматическая генерация Allure-отчётов
+- кроссплатформенная проверка в CI
+- отсутствие ненужного усложнения фреймворка
 
-The goal is to keep the framework simple enough to adapt to a new client project without introducing unnecessary abstractions.
+Цель проекта — сохранить фреймворк достаточно простым, чтобы его можно было адаптировать под новый клиентский проект без добавления лишних абстракций.
 
-## Known Limitations
+## Известные ограничения
 
-This repository is a demonstration automation project built around publicly available applications.
+Этот репозиторий является демонстрационным проектом автоматизации, построенным на основе публично доступных приложений.
 
-The UI tests depend on the current behavior and availability of:
+UI-тесты зависят от текущего поведения и доступности:
 
 ```text
 https://demowebshop.tricentis.com/
 ```
 
-API tests depend on:
+API-тесты зависят от:
 
 ```text
 https://jsonplaceholder.typicode.com/
 ```
 
-The current driver configuration supports Chrome only.
+Текущая конфигурация драйвера поддерживает только Chrome.
 
-Browser, WebDriver, operating-system, and CI behavior can vary depending on the environment and browser version.
+Поведение браузера, WebDriver, операционной системы и CI может различаться в зависимости от окружения и версии браузера.
 
-Docker CI currently focuses on Selenium Standalone Chrome.
+Docker CI в текущей конфигурации ориентирован на Selenium Standalone Chrome.
 
-## Project Goals
+## Цели проекта
 
-The project demonstrates practical skills in:
+Проект демонстрирует практические навыки в следующих областях:
 
-- UI test automation
-- API test automation
+- UI-автоматизация
+- API-автоматизация
 - Java
 - Selenium WebDriver
 - JUnit 5
 - Page Object Model
-- test data management
-- smoke testing
-- regression testing
+- управление тестовыми данными
+- smoke-тестирование
+- regression-тестирование
 - boundary value testing
 - REST Assured
 - Docker
 - Docker Compose
 - GitHub Actions
 - CI/CD
-- Allure reporting
-- cross-platform test execution
-- reusable automation framework design
+- Allure-отчётность
+- кроссплатформенный запуск тестов
+- разработка переиспользуемого automation framework
 
-## Author
+## Автор
 
 **Semyon**
 
-QA Engineer focused on:
+QA Engineer, специализация:
 
 - Manual Testing
 - UI Test Automation
@@ -919,21 +919,21 @@ QA Engineer focused on:
 - GitHub Actions
 - Allure
 
-## Links
+## Ссылки
 
-- **Repository:** https://github.com/crscntmn/AutoTests
+- **Репозиторий:** https://github.com/crscntmn/AutoTests
 - **Allure Reports:** https://crscntmn.github.io/AutoTests/
 - **Demo Web Shop:** https://demowebshop.tricentis.com/
 - **JSONPlaceholder:** https://jsonplaceholder.typicode.com/
 
-## Project Status
+## Статус проекта
 
-The framework is ready to be extended with additional:
+Фреймворк готов к дальнейшему расширению:
 
-- UI scenarios
-- API scenarios
+- UI-сценариями
+- API-сценариями
 - Page Objects
-- reusable components
-- test data
-- CI/CD scenarios
-- reporting improvements
+- переиспользуемыми компонентами
+- тестовыми данными
+- CI/CD-сценариями
+- улучшениями отчётности
