@@ -1,4 +1,4 @@
-# AutoTests — Java Selenium Automation Framework
+# AutoTests
 
 ![CI Orchestrator](https://github.com/crscntmn/AutoTests/actions/workflows/ci-orchestrator.yml/badge.svg)
 ![Selenium CI](https://github.com/crscntmn/AutoTests/actions/workflows/ci.yml/badge.svg)
@@ -12,122 +12,170 @@
 ![GitHub Actions](https://img.shields.io/badge/GitHub%20Actions-CI%2FCD-black)
 ![Allure](https://img.shields.io/badge/Allure-reporting-ff69b4)
 
-```mermaid
-flowchart TD
-    A[AutoTests]
-    A --> UI[UI Testing]
-    A --> API[API Testing]
-    UI --> PO[Page Objects]
-    UI --> SEL[Selenium WebDriver]
-    API --> RA[REST Assured]
-    API --> POJO[POJO Models]
-    PO --> JUNIT[JUnit 5]
-    SEL --> JUNIT
-    RA --> JUNIT
-    POJO --> JUNIT
-    JUNIT --> CI[GitHub Actions]
-    CI --> SELCI[Selenium CI]
-    CI --> DOCKER[Docker Selenium CI]
-    SELCI --> ALLURE[Allure Report]
-    DOCKER --> ALLURE
-    ALLURE --> PAGES[GitHub Pages]
-```
-                  
-A Java-based test automation framework demonstrating UI and API testing, Page Object Model, test categorization, Docker-based execution, CI/CD with GitHub Actions, and Allure reporting.
+A Java-based test automation project demonstrating UI and API testing, Page Object Model, reusable framework components, test categorization, Docker-based execution, GitHub Actions CI/CD, and Allure reporting.
 
 The project uses [Demo Web Shop](https://demowebshop.tricentis.com/) as the main UI testing application and [JSONPlaceholder](https://jsonplaceholder.typicode.com/) for API testing.
 
----
+## Architecture Overview
+
+```mermaid
+flowchart TD
+    A[AutoTests]
+    A --> F[Reusable Framework]
+    A --> UI[UI Tests]
+    A --> API[API Tests]
+
+    F --> BT[BaseTest]
+    F --> DP[DriverFactory]
+    F --> CP[Config]
+    F --> BP[BasePage]
+
+    UI --> POM[Page Objects]
+    UI --> COMP[Components]
+    POM --> BP
+    COMP --> BP
+    BP --> SEL[Selenium WebDriver]
+
+    API --> RA[REST Assured]
+    API --> MODELS[POJO Models]
+    API --> APICONFIG[ApiConfig]
+
+    SEL --> JUNIT[JUnit 5]
+    RA --> JUNIT
+
+    JUNIT --> LOCAL[Local Maven Execution]
+    JUNIT --> DOCKER[Docker Selenium CI]
+    LOCAL --> ALLURE[Allure]
+    DOCKER --> ALLURE
+    JUNIT --> GHA[GitHub Actions]
+    GHA --> ALLURE
+    ALLURE --> PAGES[GitHub Pages]
+```
 
 ## About the Project
 
-The project demonstrates a maintainable automated testing framework for web applications.
+The project is structured so that reusable automation infrastructure is separated from application-specific test code.
 
-The framework includes:
+### Reusable framework
 
-- UI test automation with Selenium WebDriver
-- REST API testing with REST Assured
-- Page Object Model
-- Reusable page and component classes
-- Explicit waits
-- Positive and negative test scenarios
-- Boundary value testing
-- Dynamic test data generation
-- JUnit 5 assertions and test tags
-- Smoke and Regression test suites
-- Docker-based Selenium execution
-- GitHub Actions CI/CD
-- Cross-platform CI execution
-- Java 17 and Java 21 CI matrix
-- Allure test reporting
-- GitHub Pages publication of test reports
+The `framework` package contains the parts that can be reused when starting automation for another web application:
 
----
+- `BaseTest`
+- `BasePage`
+- `DriverFactory`
+- `Config`
+
+The framework provides:
+
+- WebDriver lifecycle management
+- local Chrome execution
+- remote Selenium execution
+- configurable base URL
+- configurable UI timeout
+- reusable Selenium actions and waits
+
+### Application-specific test code
+
+The application-specific part contains:
+
+- Page Objects
+- UI components
+- UI tests
+- UI test data
+- API configuration
+- API tests
+- API models
+- API test data
+
+This separation makes the project suitable as a starting point for new automation projects.
 
 ## Tech Stack
 
-| Technology | Purpose |
-|---|---|
-| Java 17+ | Programming language |
-| Selenium WebDriver 4.52.0 | UI test automation |
-| JUnit 5.10.2 | Test framework |
-| Maven | Build and dependency management |
-| WebDriverManager 6.1.0 | WebDriver management |
-| REST Assured 5.5.6 | REST API testing |
-| Allure 2.29.1 | Test reporting |
-| Docker | Containerized test execution |
-| Docker Compose | Selenium environment orchestration |
-| GitHub Actions | CI/CD |
-| GitHub Pages | Test report hosting |
+| Technology | Version | Purpose |
+|---|---:|---|
+| Java | 17+ | Programming language |
+| Selenium WebDriver | 4.52.0 | UI test automation |
+| JUnit | 5.10.2 | Test framework |
+| Maven | — | Build and dependency management |
+| REST Assured | 5.5.6 | REST API testing |
+| Jackson Databind | 2.18.3 | JSON serialization/deserialization |
+| Allure JUnit 5 | 2.29.1 | Test result integration |
+| Allure CLI | 2.34.1 | CI report generation |
+| Docker | — | Containerized execution |
+| Docker Compose | — | Selenium environment orchestration |
+| GitHub Actions | — | CI/CD |
+| GitHub Pages | — | Allure report hosting |
 
----
+> WebDriverManager is not used. Local Chrome execution relies on Selenium Manager provided by Selenium.
 
-## Project Architecture
-
-The project uses the **Page Object Model (POM)** approach to separate test scenarios from UI interaction logic.
+## Project Structure
 
 ```text
-src/test/java/auto/tests/
+AutoTests/
 │
-├── api/
-│   ├── ApiConfig.java
-│   ├── ApiTest.java
-│   ├── model/
-│   │   ├── Post.java
-│   │   └── User.java
-│   └── testdata/
-│       └── ApiTestData.java
+├── .github/
+│   └── workflows/
+│       ├── allure-pages.yml
+│       ├── ci-orchestrator.yml
+│       ├── ci.yml
+│       └── docker-ci.yml
 │
-├── base/
-│   └── BaseTest.java
+├── src/
+│   └── test/
+│       └── java/
+│           └── auto/
+│               └── tests/
+│                   │
+│                   ├── api/
+│                   │   ├── ApiConfig.java
+│                   │   ├── ApiTest.java
+│                   │   ├── model/
+│                   │   │   ├── Post.java
+│                   │   │   └── User.java
+│                   │   └── testdata/
+│                   │       └── ApiTestData.java
+│                   │
+│                   ├── cart/
+│                   │   └── CartTest.java
+│                   │
+│                   ├── components/
+│                   │   └── HeaderComponent.java
+│                   │
+│                   ├── framework/
+│                   │   ├── base/
+│                   │   │   └── BaseTest.java
+│                   │   ├── config/
+│                   │   │   └── Config.java
+│                   │   ├── driver/
+│                   │   │   └── DriverFactory.java
+│                   │   └── pages/
+│                   │       └── BasePage.java
+│                   │
+│                   ├── login/
+│                   │   └── LoginTest.java
+│                   │
+│                   ├── pages/
+│                   │   ├── CartPage.java
+│                   │   ├── CheckoutPage.java
+│                   │   ├── LoginPage.java
+│                   │   └── RegistrationPage.java
+│                   │
+│                   ├── registration/
+│                   │   └── RegistrationTest.java
+│                   │
+│                   └── testdata/
+│                       └── TestData.java
 │
-├── cart/
-│   └── CartTest.java
-│
-├── components/
-│   └── HeaderComponent.java
-│
-├── config/
-│   └── Config.java
-│
-├── login/
-│   └── LoginTest.java
-│
-├── pages/
-│   ├── BasePage.java
-│   ├── CartPage.java
-│   ├── CheckoutPage.java
-│   ├── LoginPage.java
-│   └── RegistrationPage.java
-│
-├── registration/
-│   └── RegistrationTest.java
-│
-└── testdata/
-    └── TestData.java
+├── Dockerfile
+├── docker-compose.yml
+├── pom.xml
+├── .gitignore
+└── README.md
 ```
 
-### Main architectural layers
+## Framework Architecture
+
+The UI automation follows this structure:
 
 ```text
 Test Classes
@@ -136,148 +184,96 @@ Test Classes
 Page Objects / Components
      │
      ▼
-BasePage
+Framework BasePage
      │
      ▼
 Selenium WebDriver
 ```
 
-API tests use a separate structure:
+Driver creation is centralized in `DriverFactory`:
 
 ```text
-ApiTest
-   │
-   ├── ApiConfig
-   ├── POJO Models
-   └── API Test Data
-        │
-        ▼
-   REST Assured
+BaseTest
+    │
+    └── DriverFactory.createDriver()
+                    │
+                    ├── Local → ChromeDriver
+                    │
+                    └── Remote → RemoteWebDriver
 ```
 
----
+This keeps browser and execution-environment logic out of individual test classes.
 
-## Test Coverage
+## UI Test Coverage
 
-The project currently contains **44 active automated tests** covering UI and API functionality.
+The current project contains **31 UI tests**.
 
-### UI Testing
+### Registration
 
-The UI tests cover the following areas:
+The registration suite contains **11 tests** covering:
 
-- User registration
-- User authentication
-- Password recovery
-- Shopping cart
-- Product addition
-- Product quantities
-- Cart calculations
-- Checkout restrictions
-- Validation errors
-- Boundary value scenarios
+- successful registration
+- empty registration form
+- password mismatch
+- invalid email
+- missing first name
+- missing last name
+- missing email
+- minimum valid password length
+- password below the minimum length
+- email containing spaces
+- email using uppercase characters
 
-### API Testing
+### Login
 
-API tests cover:
+The authentication suite contains **10 tests** covering:
 
-- GET requests
-- POST requests
-- PUT requests
-- PATCH requests
-- DELETE requests
-- Path parameters
-- Query parameters
-- Response headers
-- HTTP status codes
-- JSON response validation
-- POJO serialization/deserialization
-- Positive and negative scenarios
+- successful login
+- empty login form
+- incorrect password
+- incorrect email
+- empty email
+- empty password
+- password recovery with an invalid email
+- password recovery with an existing email
+- invalid email with an empty password
+- logout
 
----
+### Shopping Cart
 
-## Registration Tests
+The shopping cart suite contains **10 tests** covering scenarios such as:
 
-The registration suite contains positive, negative, and boundary-value scenarios.
+- adding products to the cart
+- checkout restrictions
+- accepting Terms of Service
+- configurable products
+- multiple products
+- adding the same product multiple times
+- changing product quantity
+- cart item counter
+- product price validation
+- subtotal calculation
 
-Examples:
-
-- Successful registration
-- Registration with empty fields
-- Password mismatch
-- Invalid email
-- Missing first name
-- Missing last name
-- Missing email
-- Password with minimum allowed length
-- Password below minimum length
-- Email containing spaces
-- Email using uppercase characters
-
-Example boundary-value scenario:
-
-```text
-Password length = 6
-Expected: registration succeeds
-```
-
-```text
-Password length = 5
-Expected: validation error
-```
-
----
-
-## Login Tests
-
-The authentication suite covers:
-
-- Successful login
-- Empty login form
-- Incorrect password
-- Incorrect email
-- Empty email
-- Empty password
-- Password recovery with an invalid email
-- Password recovery with an existing email
-- Invalid email with empty password
-- Logout
-
----
-
-## Shopping Cart Tests
-
-The shopping cart suite covers:
-
-- Adding a product to the cart
-- Checkout without accepting Terms of Service
-- Checkout after accepting Terms of Service
-- Adding configurable products
-- Adding multiple products
-- Adding the same product multiple times
-- Changing product quantity
-- Checking the cart item counter
-- Calculating product subtotal
-
-The framework also uses `BigDecimal` for price calculations:
+Prices are handled with `BigDecimal` when calculations are required:
 
 ```java
 BigDecimal expectedSubtotal =
         unitPrice.multiply(BigDecimal.valueOf(quantity));
 ```
 
-This allows the test to validate the calculated subtotal against the value displayed by the application.
-
----
+This avoids using floating-point arithmetic for monetary values.
 
 ## API Testing
 
 API automation is implemented using **REST Assured**.
 
-The tests use:
+The current API test application is:
 
 ```text
 https://jsonplaceholder.typicode.com
 ```
+
+The project contains **13 API tests**.
 
 ### Covered HTTP methods
 
@@ -289,37 +285,41 @@ PATCH
 DELETE
 ```
 
-### Examples
+### API coverage includes
 
-The framework validates:
+- HTTP status codes
+- response body validation
+- JSON fields
+- response headers
+- query parameters
+- path parameters
+- positive and negative scenarios
+- POJO serialization/deserialization
 
-- HTTP response status codes
-- Response body fields
-- JSON structure
-- Response headers
-- Query parameters
-- Path parameters
-- Response deserialization into Java objects
-
-For example, API responses can be mapped to POJO models:
+API responses can be mapped to Java models:
 
 ```java
 User responseUser = response.as(User.class);
 ```
 
-This allows API assertions to be written against strongly typed Java objects rather than raw JSON strings.
-
----
+The API-specific code is intentionally kept outside the reusable UI framework.
 
 ## Page Object Model
 
-The framework follows the Page Object Model pattern.
+The project uses the Page Object Model to separate test scenarios from Selenium interaction logic.
 
-Common Selenium operations are centralized in `BasePage`.
+Application-specific Page Objects include:
 
-Examples of reusable methods:
+```text
+RegistrationPage
+LoginPage
+CartPage
+CheckoutPage
+```
 
-```java
+The reusable `BasePage` contains common Selenium operations such as:
+
+```text
 click()
 type()
 getText()
@@ -332,53 +332,38 @@ waitInvisible()
 waitClickable()
 ```
 
-Page-specific classes contain locators and business-level UI actions.
+This provides:
 
-For example:
-
-```text
-RegistrationPage
-LoginPage
-CartPage
-CheckoutPage
-```
-
-This approach helps:
-
-- reduce duplicated Selenium code;
-- keep locators outside test classes;
-- improve test readability;
-- simplify maintenance;
-- separate test logic from UI implementation.
-
----
+- less duplicated Selenium code
+- centralized locator interaction
+- more readable tests
+- easier maintenance
+- separation between test logic and UI implementation
 
 ## Reusable Components
 
-Reusable UI components are separated from individual pages.
+Common UI functionality is extracted into components when it is shared by multiple tests.
 
-For example:
+For the current application:
 
 ```text
 HeaderComponent
 ```
 
-contains common actions such as:
+contains common header actions such as:
 
-- opening registration;
-- opening login;
-- opening the shopping cart;
-- logging out;
-- adding products to the cart;
-- reading the cart item counter.
+- opening registration
+- opening login
+- opening the shopping cart
+- logging out
+- adding products to the cart
+- reading the cart item counter
 
-This allows multiple test classes to reuse the same functionality.
-
----
+Application-specific components remain outside the reusable framework because they depend on the current application's UI.
 
 ## Explicit Waits
 
-The framework uses Selenium's `WebDriverWait` and `ExpectedConditions` instead of relying exclusively on fixed delays.
+The framework uses Selenium `WebDriverWait` and `ExpectedConditions` instead of relying on fixed sleeps.
 
 Examples:
 
@@ -394,9 +379,44 @@ wait.until(ExpectedConditions.visibilityOfElementLocated(locator));
 wait.until(ExpectedConditions.invisibilityOfElementLocated(locator));
 ```
 
-The default explicit wait timeout is **10 seconds**.
+The default UI timeout is **10 seconds**.
 
----
+The timeout can be overridden with:
+
+```text
+UI_TIMEOUT
+```
+
+For example:
+
+```powershell
+$env:UI_TIMEOUT="15"
+mvn clean test
+```
+
+## Test Data
+
+UI test data is stored separately from test classes:
+
+```text
+testdata/
+└── TestData.java
+```
+
+Dynamic email addresses are generated with UUIDs so registration tests can create unique users.
+
+Sensitive or environment-specific password values can be provided through environment variables:
+
+```text
+PASSWORD
+SHORT_PASSWORD
+INVALIDATE_PASSWORD
+WRONG_PASSWORD
+```
+
+Default values are available for local execution.
+
+For CI, the values are provided through GitHub Actions Secrets.
 
 ## Test Suites
 
@@ -404,37 +424,39 @@ Tests are categorized using JUnit 5 tags.
 
 ### Smoke
 
-Smoke tests cover critical positive functionality.
+Smoke tests contain critical positive scenarios.
 
-Run the Smoke suite with:
+Run the Smoke suite:
 
 ```bash
 mvn clean test -Dgroups=smoke
 ```
 
+The current project contains **4 smoke tests**.
+
 ### Regression
 
-Regression tests cover additional scenarios including negative and validation cases.
+Regression tests cover additional validation and negative scenarios.
 
-Run the Regression suite with:
+Run the Regression suite:
 
 ```bash
 mvn clean test -Dgroups=regression
 ```
 
-### Full Test Suite
+The current project contains **7 regression-tagged tests**.
 
-Run all tests with:
+### Full Suite
+
+Run all tests:
 
 ```bash
 mvn clean test
 ```
 
----
-
 ## Test Distribution
 
-The current active test suite contains:
+The current `main` branch contains **44 active automated tests**:
 
 | Area | Tests |
 |---|---:|
@@ -444,84 +466,214 @@ The current active test suite contains:
 | API | 13 |
 | **Total** | **44** |
 
-The project also contains additional commented-out cart scenarios that can be re-enabled and stabilized as the framework evolves.
+The exact number of tests may change as new scenarios are added.
 
----
+## Configuration
 
-## Docker
-
-The project supports running Selenium tests in Docker.
-
-Docker Compose is used to orchestrate:
+The reusable framework configuration is located in:
 
 ```text
-┌───────────────────────┐
-│     Docker Compose    │
-│                       │
-│  ┌─────────────────┐  │
-│  │ Selenium Chrome │  │
-│  │    :4444        │  │
-│  └────────┬────────┘  │
-│           │           │
-│           │ WebDriver │
-│           ▼           │
-│  ┌─────────────────┐  │
-│  │    AutoTests    │  │
-│  │      Maven      │  │
-│  └─────────────────┘  │
-│                       │
-└───────────────────────┘
+src/test/java/auto/tests/framework/config/Config.java
 ```
 
-The Selenium container uses:
+### Base URL
+
+The UI base URL can be configured using:
+
+1. Java system property
+2. environment variable
+3. default value
+
+The default value is:
+
+```text
+https://demowebshop.tricentis.com/
+```
+
+Example using an environment variable:
+
+```powershell
+$env:BASE_URL="https://example.com"
+mvn clean test
+```
+
+Example using a Maven system property:
+
+```bash
+mvn clean test -DBASE_URL=https://example.com
+```
+
+### UI Timeout
+
+The default UI timeout is:
+
+```text
+10 seconds
+```
+
+It can be overridden with:
+
+```text
+UI_TIMEOUT
+```
+
+### Browser and Remote Execution
+
+The driver configuration uses:
+
+```text
+BROWSER
+SELENIUM_REMOTE_URL
+```
+
+The current framework supports Chrome.
+
+If `SELENIUM_REMOTE_URL` is set, `DriverFactory` creates a `RemoteWebDriver`. Otherwise, it creates a local `ChromeDriver`.
+
+## Local Execution
+
+### Requirements
+
+Install:
+
+- Java 17 or higher
+- Maven
+- Google Chrome
+- Git
+
+Docker is required only for containerized execution.
+
+### Clone the repository
+
+```bash
+git clone https://github.com/crscntmn/AutoTests.git
+cd AutoTests
+```
+
+### Run all tests
+
+```bash
+mvn clean test
+```
+
+### Run Smoke tests
+
+```bash
+mvn clean test -Dgroups=smoke
+```
+
+### Run Regression tests
+
+```bash
+mvn clean test -Dgroups=regression
+```
+
+## Docker Execution
+
+The project supports running Selenium tests inside Docker.
+
+Docker Compose starts two services:
+
+```text
+┌─────────────────────────────┐
+│       Docker Compose        │
+│                             │
+│  ┌───────────────────────┐  │
+│  │ Selenium Standalone   │  │
+│  │ Chrome :4444          │  │
+│  └───────────┬───────────┘  │
+│              │              │
+│              │ WebDriver    │
+│              ▼              │
+│  ┌───────────────────────┐  │
+│  │      AutoTests        │  │
+│  │        Maven          │  │
+│  └───────────────────────┘  │
+│                             │
+└─────────────────────────────┘
+```
+
+The Selenium image is configurable and defaults to:
 
 ```text
 selenium/standalone-chrome:latest
 ```
 
-The test container connects to Selenium using:
+The test container connects to Selenium through:
 
 ```text
 SELENIUM_REMOTE_URL=http://selenium:4444/wd/hub
 ```
 
-### Run Docker tests
-
-Start the environment with:
+### Run the full Docker suite
 
 ```bash
 docker compose up --build
 ```
 
-The tests are executed automatically after the Selenium container becomes healthy.
+### Run Smoke tests in Docker
 
-### Run a specific test suite
-
-Smoke:
+Linux/macOS:
 
 ```bash
 TEST_GROUP=smoke docker compose up --build
 ```
 
-Regression:
+PowerShell:
+
+```powershell
+$env:TEST_GROUP="smoke"
+docker compose up --build
+```
+
+### Run Regression tests in Docker
+
+Linux/macOS:
 
 ```bash
 TEST_GROUP=regression docker compose up --build
 ```
 
-Full suite:
+PowerShell:
 
-```bash
+```powershell
+$env:TEST_GROUP="regression"
 docker compose up --build
 ```
 
----
+### Configure UI timeout in Docker
 
-## CI/CD
+PowerShell:
 
-The project uses **GitHub Actions** for automated test execution.
+```powershell
+$env:UI_TIMEOUT="15"
+docker compose up --build
+```
 
-The CI pipeline is orchestrated using reusable workflows.
+The Docker Compose configuration passes the following settings to the test container:
+
+```text
+SELENIUM_REMOTE_URL
+BROWSER
+UI_TIMEOUT
+PASSWORD
+SHORT_PASSWORD
+INVALIDATE_PASSWORD
+WRONG_PASSWORD
+TEST_GROUP
+```
+
+## GitHub Actions CI/CD
+
+The project uses GitHub Actions with reusable workflows.
+
+The main workflow is:
+
+```text
+CI Orchestrator
+```
+
+It coordinates:
 
 ```text
                     CI Orchestrator
@@ -532,7 +684,7 @@ The CI pipeline is orchestrated using reusable workflows.
        Selenium CI                 Docker Selenium CI
              │                           │
              ▼                           ▼
-         Test Matrix                  Docker Tests
+       Test Matrix                  Chrome Container
              │                           │
              └─────────────┬─────────────┘
                            ▼
@@ -542,32 +694,35 @@ The CI pipeline is orchestrated using reusable workflows.
                      GitHub Pages
 ```
 
----
+### Workflow triggers
 
-## CI Orchestrator
+The CI Orchestrator runs on:
 
-The main workflow coordinates:
+- push to `main`
+- push to `develop`
+- pull request to `main`
+- scheduled execution
+- manual execution
 
-- Selenium CI
-- Docker Selenium CI
-- CI result validation
-- Allure report publication
+The scheduled workflow runs daily.
 
-The workflow can be triggered by:
+### Manual execution
 
-- push to `main`;
-- push to `develop`;
-- pull request to `main`;
-- scheduled execution;
-- manual execution.
+The workflow can be started manually from GitHub Actions.
 
----
+Available suites:
+
+```text
+all
+smoke
+regression
+```
+
+This allows a specific test group to be executed without modifying the test code.
 
 ## Selenium CI Matrix
 
-The Selenium CI workflow runs tests across multiple operating systems and Java versions.
-
-Current matrix:
+The Selenium CI workflow currently runs:
 
 | Operating System | Java | Browser |
 |---|---:|---|
@@ -578,224 +733,133 @@ Current matrix:
 | macOS | 17 | Chrome |
 | macOS | 21 | Chrome |
 
-This allows the same automated test suite to be validated across different environments.
+The same test suite is therefore checked across multiple operating systems and Java versions.
 
----
+## Docker CI
 
-## Manual CI Execution
+Docker CI currently runs Selenium Standalone Chrome.
 
-The workflow can be started manually using GitHub Actions.
+The workflow:
 
-Available suites:
-
-```text
-all
-smoke
-regression
-```
-
-This makes it possible to execute only the required test group without changing the project code.
-
----
+1. builds the AutoTests image;
+2. starts the Selenium container;
+3. waits for Selenium to become ready;
+4. runs the tests;
+5. collects Surefire and Allure results;
+6. publishes test artifacts;
+7. fails the workflow if the Docker test run fails.
 
 ## Allure Reporting
 
-The project uses **Allure** for test reporting.
+The project uses:
 
-Allure results are generated after test execution and uploaded as GitHub Actions artifacts.
+- `allure-junit5` to collect test results;
+- Allure CLI to generate reports in CI;
+- GitHub Pages to publish the reports.
 
-The CI pipeline then publishes the generated reports to GitHub Pages.
+The Maven Allure plugin is not required by the current CI pipeline.
 
 ### Live Allure Reports
 
 **[Open Allure Test Reports](https://crscntmn.github.io/AutoTests/)**
 
-The reports are organized by:
+The published reports are organized into:
 
 ```text
 Allure Reports
 │
-├── Selenium CI
+├── Selenium
 │   ├── Ubuntu
-│   │   ├── Java 17
-│   │   │   └── Chrome
-│   │   └── Java 21
-│   │       └── Chrome
+│   │   ├── Java 17 / Chrome
+│   │   └── Java 21 / Chrome
 │   │
 │   ├── Windows
-│   │   ├── Java 17
-│   │   └── Java 21
+│   │   ├── Java 17 / Chrome
+│   │   └── Java 21 / Chrome
 │   │
 │   └── macOS
-│       ├── Java 17
-│       └── Java 21
+│       ├── Java 17 / Chrome
+│       └── Java 21 / Chrome
 │
-└── Docker Selenium CI
+└── Docker
     └── Chrome
 ```
 
-The reports are generated automatically by GitHub Actions.
+## CI Artifacts
 
----
+The CI workflows store test artifacts including:
 
-## Artifacts
+- Maven Surefire reports
+- Allure results
+- generated Allure reports
 
-CI workflows store test artifacts including:
+These artifacts can be used to investigate failed test executions after a workflow finishes.
 
-- Maven Surefire reports;
-- Allure results;
-- generated Allure reports.
+## Reusing the Framework for a New Project
 
-This makes it possible to investigate failed test runs even when the workflow itself has already finished.
+The framework was structured with reuse in mind.
 
----
-
-## Configuration
-
-Application and test configuration is separated from test classes.
-
-The main UI application URL is stored in:
+A typical workflow for starting automation for another web application is:
 
 ```text
-Config.java
+1. Clone repository
+       ↓
+2. Change BASE_URL / Config default
+       ↓
+3. Remove application-specific Page Objects and tests
+       ↓
+4. Create new Page Objects
+       ↓
+5. Add application-specific test data
+       ↓
+6. Add new UI tests
+       ↓
+7. Run locally with Maven
+       ↓
+8. Run in Docker
+       ↓
+9. Run through GitHub Actions
+       ↓
+10. Review Allure reports
 ```
 
-Environment variables can be used to provide test credentials and runtime configuration.
+The reusable infrastructure normally does not need to be changed when switching to another ordinary web application.
 
-Supported variables include:
+The main project-specific parts that are expected to change are:
 
-```text
-PASSWORD
-SHORT_PASSWORD
-INVALIDATE_PASSWORD
-WRONG_PASSWORD
-BROWSER
-SELENIUM_REMOTE_URL
-TEST_GROUP
-```
+- Page Objects
+- UI components
+- test classes
+- test data
+- API tests and models, when API coverage is needed
+- application URL/configuration
 
-For local development, default test values are available where appropriate.
-
-For CI execution, sensitive configuration is provided through GitHub Actions Secrets.
-
----
-
-## Local Execution
-
-### Requirements
-
-To run the project locally, install:
-
-- Java 17 or higher
-- Maven
-- Google Chrome
-- Git
-
-Docker is required only for containerized execution.
-
----
-
-### Clone the repository
-
-```bash
-git clone https://github.com/crscntmn/AutoTests.git
-cd AutoTests
-```
-
----
-
-### Run all tests
-
-```bash
-mvn clean test
-```
-
----
-
-### Run Smoke tests
-
-```bash
-mvn clean test -Dgroups=smoke
-```
-
----
-
-### Run Regression tests
-
-```bash
-mvn clean test -Dgroups=regression
-```
-
----
-
-### Generate Allure report locally
-
-After test execution:
-
-```bash
-mvn allure:serve
-```
-
-The command generates and opens the Allure report locally.
-
----
-
-## Project Structure
-
-```text
-AutoTests/
-│
-├── .github/
-│   └── workflows/
-│       ├── ci-orchestrator.yml
-│       ├── ci.yml
-│       ├── docker-ci.yml
-│       └── allure-pages.yml
-│
-├── src/
-│   └── test/
-│       └── java/
-│           └── auto/
-│               └── tests/
-│                   ├── api/
-│                   ├── base/
-│                   ├── cart/
-│                   ├── components/
-│                   ├── config/
-│                   ├── login/
-│                   ├── pages/
-│                   ├── registration/
-│                   └── testdata/
-│
-├── Dockerfile
-├── docker-compose.yml
-├── pom.xml
-├── .gitignore
-└── README.md
-```
-
----
+Special client requirements such as authentication infrastructure, proxy configuration, certificates, unusual browsers, or external services may require additional CI/Docker configuration.
 
 ## Framework Design Principles
 
-The project follows several principles intended to keep the test suite maintainable:
+The project follows several practical principles:
 
 - Page Object Model
-- Reusable page/component methods
-- Separation of test logic and UI interaction
-- Explicit waits instead of unnecessary fixed delays
-- Centralized test data
-- Environment-based configuration
-- Test categorization with JUnit tags
-- Reusable GitHub Actions workflows
-- Containerized test execution
-- Automated reporting
+- separation of framework and application-specific code
+- reusable Selenium operations
+- explicit waits
+- centralized configuration
+- centralized test data
+- dynamic test data generation
+- JUnit 5 test tags
+- Maven-based execution
+- Docker-based execution
+- reusable GitHub Actions workflows
+- automated Allure reporting
+- cross-platform CI validation
+- avoiding unnecessary framework complexity
 
----
+The goal is to keep the framework simple enough to adapt to a new client project without introducing unnecessary abstractions.
 
 ## Known Limitations
 
-This repository is a demonstration automation framework built around publicly available test applications.
+This repository is a demonstration automation project built around publicly available applications.
 
 The UI tests depend on the current behavior and availability of:
 
@@ -809,31 +873,34 @@ API tests depend on:
 https://jsonplaceholder.typicode.com/
 ```
 
-Browser and WebDriver behavior may vary depending on the browser version, operating system, and CI environment.
+The current driver configuration supports Chrome only.
 
-The Docker CI configuration currently focuses on Selenium Standalone Chrome.
+Browser, WebDriver, operating-system, and CI behavior can vary depending on the environment and browser version.
 
----
+Docker CI currently focuses on Selenium Standalone Chrome.
 
 ## Project Goals
 
-The main goals of the project are to demonstrate practical skills in:
+The project demonstrates practical skills in:
 
-- UI automation;
-- API automation;
-- Java test development;
-- Selenium WebDriver;
-- JUnit 5;
-- Page Object Model;
-- test data management;
-- test suite organization;
-- Docker;
-- CI/CD;
-- GitHub Actions;
-- Allure reporting;
-- cross-platform automated testing.
-
----
+- UI test automation
+- API test automation
+- Java
+- Selenium WebDriver
+- JUnit 5
+- Page Object Model
+- test data management
+- smoke testing
+- regression testing
+- boundary value testing
+- REST Assured
+- Docker
+- Docker Compose
+- GitHub Actions
+- CI/CD
+- Allure reporting
+- cross-platform test execution
+- reusable automation framework design
 
 ## Author
 
@@ -852,8 +919,6 @@ QA Engineer focused on:
 - GitHub Actions
 - Allure
 
----
-
 ## Links
 
 - **Repository:** https://github.com/crscntmn/AutoTests
@@ -861,16 +926,14 @@ QA Engineer focused on:
 - **Demo Web Shop:** https://demowebshop.tricentis.com/
 - **JSONPlaceholder:** https://jsonplaceholder.typicode.com/
 
----
-
 ## Project Status
 
-The framework is actively developed and can be extended with additional:
+The framework is ready to be extended with additional:
 
-- UI test scenarios;
-- API test scenarios;
-- Page Objects;
-- reusable components;
-- browser configurations;
-- CI/CD scenarios;
-- test reporting features.
+- UI scenarios
+- API scenarios
+- Page Objects
+- reusable components
+- test data
+- CI/CD scenarios
+- reporting improvements
